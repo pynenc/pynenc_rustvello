@@ -47,6 +47,7 @@ dev = [
 ]
 tests = [
     "pynenc[tests]>=0.1.0",
+    "psutil>=7.0.0",
     "testcontainers[postgres,redis,rabbitmq,mongodb]>=4.13.0",
     "pymongo>=4.6.0",
 ]

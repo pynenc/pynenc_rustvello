@@ -907,6 +907,7 @@ docs = [
     { name = "sphinx-inline-tabs" },
 ]
 tests = [
+    { name = "psutil" },
     { name = "pymongo" },
     { name = "pynenc", extra = ["tests"] },
     { name = "testcontainers", extra = ["mongodb", "rabbitmq", "redis"] },
@@ -938,6 +939,7 @@ docs = [
     { name = "sphinx-inline-tabs", specifier = ">=2023.4.21" },
 ]
 tests = [
+    { name = "psutil", specifier = ">=7.0.0" },
     { name = "pymongo", specifier = ">=4.6.0" },
     { name = "pynenc", extras = ["tests"], editable = "../pynenc_repo" },
     { name = "testcontainers", extras = ["postgres", "redis", "rabbitmq", "mongodb"], specifier = ">=4.13.0" },
