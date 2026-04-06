@@ -42,16 +42,16 @@ app = (
 
 Set **all** backend components to the same storage engine in one call.
 
-| Method | Parameters | Description |
-| ------ | ---------- | ----------- |
-| `.rustvello(backend, native, **kw)` | `backend`: str, `native`: bool = True | Generic entry point |
-| `.rustvello_mem(native)` | `native`: bool = True | All components in-memory |
-| `.rustvello_sqlite(sqlite_db_path, native, **kw)` | `sqlite_db_path`: str \| None, `native`: bool = True | All components on SQLite |
-| `.rustvello_redis(redis_url, native, **kw)` | `redis_url`: str \| None, `native`: bool = True | All components on Redis |
-| `.rustvello_postgres(postgres_url, native, **kw)` | `postgres_url`: str \| None, `native`: bool = True | All components on Postgres |
-| `.rustvello_mongo(mongo_url, mongo_db_name, native, **kw)` | `mongo_url`: str \| None, `mongo_db_name`: str \| None, `native`: bool = True | All on MongoDB |
-| `.rustvello_mongo3(mongo_url, mongo_db_name, native, **kw)` | same as `.rustvello_mongo` | All on MongoDB 3.6+ legacy |
-| `.rust_runner()` | — | Switch runner to Rust (`RustPythonRunner`) |
+| Method                                                      | Parameters                                                                    | Description                                |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------ |
+| `.rustvello(backend, native, **kw)`                         | `backend`: str, `native`: bool = True                                         | Generic entry point                        |
+| `.rustvello_mem(native)`                                    | `native`: bool = True                                                         | All components in-memory                   |
+| `.rustvello_sqlite(sqlite_db_path, native, **kw)`           | `sqlite_db_path`: str \| None, `native`: bool = True                          | All components on SQLite                   |
+| `.rustvello_redis(redis_url, native, **kw)`                 | `redis_url`: str \| None, `native`: bool = True                               | All components on Redis                    |
+| `.rustvello_postgres(postgres_url, native, **kw)`           | `postgres_url`: str \| None, `native`: bool = True                            | All components on Postgres                 |
+| `.rustvello_mongo(mongo_url, mongo_db_name, native, **kw)`  | `mongo_url`: str \| None, `mongo_db_name`: str \| None, `native`: bool = True | All on MongoDB                             |
+| `.rustvello_mongo3(mongo_url, mongo_db_name, native, **kw)` | same as `.rustvello_mongo`                                                    | All on MongoDB 3.6+ legacy                 |
+| `.rust_runner()`                                            | —                                                                             | Switch runner to Rust (`RustPythonRunner`) |
 
 The `native` parameter controls orchestrator mode. See
 {doc}`architecture` for details on native vs delegated orchestration.
@@ -61,16 +61,16 @@ The `native` parameter controls orchestrator mode. See
 Set individual backend components for **mixing backends** across storage
 engines. Existing per-component selections are preserved.
 
-| Method | Description |
-| ------ | ----------- |
-| `.rustvello_redis_broker(redis_url, **kw)` | Redis-backed broker only |
-| `.rustvello_redis_orchestrator(redis_url, native, **kw)` | Redis-backed orchestrator |
-| `.rustvello_redis_state(redis_url, **kw)` | Redis-backed state backend |
-| `.rustvello_redis_trigger(redis_url, **kw)` | Redis-backed trigger |
-| `.rustvello_redis_cds(redis_url, **kw)` | Redis-backed client data store |
-| `.rustvello_postgres_state(postgres_url, **kw)` | Postgres-backed state backend |
-| `.rustvello_postgres_orchestrator(postgres_url, native, **kw)` | Postgres-backed orchestrator |
-| `.rustvello_rabbitmq_broker(rabbitmq_url, rabbitmq_prefix, **kw)` | RabbitMQ-backed broker |
+| Method                                                            | Description                    |
+| ----------------------------------------------------------------- | ------------------------------ |
+| `.rustvello_redis_broker(redis_url, **kw)`                        | Redis-backed broker only       |
+| `.rustvello_redis_orchestrator(redis_url, native, **kw)`          | Redis-backed orchestrator      |
+| `.rustvello_redis_state(redis_url, **kw)`                         | Redis-backed state backend     |
+| `.rustvello_redis_trigger(redis_url, **kw)`                       | Redis-backed trigger           |
+| `.rustvello_redis_cds(redis_url, **kw)`                           | Redis-backed client data store |
+| `.rustvello_postgres_state(postgres_url, **kw)`                   | Postgres-backed state backend  |
+| `.rustvello_postgres_orchestrator(postgres_url, native, **kw)`    | Postgres-backed orchestrator   |
+| `.rustvello_rabbitmq_broker(rabbitmq_url, rabbitmq_prefix, **kw)` | RabbitMQ-backed broker         |
 
 ## Mixing Backends
 

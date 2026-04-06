@@ -11,21 +11,23 @@ In-memory storage — no external dependencies, zero config, fastest for
 unit tests and development.
 
 **Builder:**
+
 ```python
 app = PynencBuilder().app_id("app").rustvello_mem().build()
 ```
 
 **Classes:**
 
-| Component | Class |
-| --------- | ----- |
-| Broker | `RustMemBroker` |
-| Orchestrator | `RustMemOrchestrator` / `RustMemNativeOrchestrator` |
-| State Backend | `RustMemStateBackend` |
-| Client Data Store | `RustMemClientDataStore` |
-| Trigger | `RustMemTrigger` |
+| Component         | Class                                               |
+| ----------------- | --------------------------------------------------- |
+| Broker            | `RustMemBroker`                                     |
+| Orchestrator      | `RustMemOrchestrator` / `RustMemNativeOrchestrator` |
+| State Backend     | `RustMemStateBackend`                               |
+| Client Data Store | `RustMemClientDataStore`                            |
+| Trigger           | `RustMemTrigger`                                    |
 
 **Limitations:**
+
 - Data is lost when the process exits.
 - Single-process only (no cross-process sharing).
 
@@ -36,19 +38,20 @@ app = PynencBuilder().app_id("app").rustvello_mem().build()
 File-based persistent storage. Zero external services required.
 
 **Builder:**
+
 ```python
 app = PynencBuilder().app_id("app").rustvello_sqlite(sqlite_db_path="/tmp/pynenc.db").build()
 ```
 
 **Classes:**
 
-| Component | Class |
-| --------- | ----- |
-| Broker | `RustSqliteBroker` |
-| Orchestrator | `RustSqliteOrchestrator` / `RustSqliteNativeOrchestrator` |
-| State Backend | `RustSqliteStateBackend` |
-| Client Data Store | `RustSqliteClientDataStore` |
-| Trigger | `RustSqliteTrigger` |
+| Component         | Class                                                     |
+| ----------------- | --------------------------------------------------------- |
+| Broker            | `RustSqliteBroker`                                        |
+| Orchestrator      | `RustSqliteOrchestrator` / `RustSqliteNativeOrchestrator` |
+| State Backend     | `RustSqliteStateBackend`                                  |
+| Client Data Store | `RustSqliteClientDataStore`                               |
+| Trigger           | `RustSqliteTrigger`                                       |
 
 **Connection:** `sqlite_db_path` — path to the SQLite database file.
 If omitted, a temporary in-memory SQLite database is used.
@@ -60,6 +63,7 @@ If omitted, a temporary in-memory SQLite database is used.
 Production-ready, high-throughput backend using Redis as the storage/queue engine.
 
 **Builder:**
+
 ```python
 app = (
     PynencBuilder()
@@ -72,13 +76,13 @@ app = (
 
 **Classes:**
 
-| Component | Class |
-| --------- | ----- |
-| Broker | `RustRedisBroker` |
-| Orchestrator | `RustRedisOrchestrator` / `RustRedisNativeOrchestrator` |
-| State Backend | `RustRedisStateBackend` |
-| Client Data Store | `RustRedisClientDataStore` |
-| Trigger | `RustRedisTrigger` |
+| Component         | Class                                                   |
+| ----------------- | ------------------------------------------------------- |
+| Broker            | `RustRedisBroker`                                       |
+| Orchestrator      | `RustRedisOrchestrator` / `RustRedisNativeOrchestrator` |
+| State Backend     | `RustRedisStateBackend`                                 |
+| Client Data Store | `RustRedisClientDataStore`                              |
+| Trigger           | `RustRedisTrigger`                                      |
 
 **Connection:** `redis_url` — standard Redis URL (e.g. `redis://localhost:6379/0`).
 
@@ -90,6 +94,7 @@ Relational storage with ACID guarantees. Good for workloads that need
 strong consistency and transactional safety.
 
 **Builder:**
+
 ```python
 app = (
     PynencBuilder()
@@ -102,13 +107,13 @@ app = (
 
 **Classes:**
 
-| Component | Class |
-| --------- | ----- |
-| Broker | `RustPostgresBroker` |
-| Orchestrator | `RustPostgresOrchestrator` / `RustPostgresNativeOrchestrator` |
-| State Backend | `RustPostgresStateBackend` |
-| Client Data Store | `RustPostgresClientDataStore` |
-| Trigger | `RustPostgresTrigger` |
+| Component         | Class                                                         |
+| ----------------- | ------------------------------------------------------------- |
+| Broker            | `RustPostgresBroker`                                          |
+| Orchestrator      | `RustPostgresOrchestrator` / `RustPostgresNativeOrchestrator` |
+| State Backend     | `RustPostgresStateBackend`                                    |
+| Client Data Store | `RustPostgresClientDataStore`                                 |
+| Trigger           | `RustPostgresTrigger`                                         |
 
 **Connection:** `postgres_url` — standard PostgreSQL connection string.
 
@@ -123,6 +128,7 @@ Document-oriented storage. Two variants are available:
 For MongoDB 4.0+ with modern driver features.
 
 **Builder:**
+
 ```python
 app = (
     PynencBuilder()
@@ -135,19 +141,20 @@ app = (
 
 **Classes:**
 
-| Component | Class |
-| --------- | ----- |
-| Broker | `RustMongoBroker` |
-| Orchestrator | `RustMongoOrchestrator` / `RustMongoNativeOrchestrator` |
-| State Backend | `RustMongoStateBackend` |
-| Client Data Store | `RustMongoClientDataStore` |
-| Trigger | `RustMongoTrigger` |
+| Component         | Class                                                   |
+| ----------------- | ------------------------------------------------------- |
+| Broker            | `RustMongoBroker`                                       |
+| Orchestrator      | `RustMongoOrchestrator` / `RustMongoNativeOrchestrator` |
+| State Backend     | `RustMongoStateBackend`                                 |
+| Client Data Store | `RustMongoClientDataStore`                              |
+| Trigger           | `RustMongoTrigger`                                      |
 
 ### MongoDB 3.6+ (legacy)
 
 For MongoDB 3.6+ deployments using legacy wire protocol features.
 
 **Builder:**
+
 ```python
 app = (
     PynencBuilder()
@@ -168,6 +175,7 @@ orchestrator, state backend, trigger, or client data store implementations.
 Combine it with another backend for the remaining components.
 
 **Builder:**
+
 ```python
 app = (
     PynencBuilder()

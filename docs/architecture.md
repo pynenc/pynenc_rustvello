@@ -62,10 +62,10 @@ abstract base class contracts:
 
 Each backend offers two orchestrator modes:
 
-| Mode | Class Pattern | How It Works |
-| ---- | ------------- | ------------ |
+| Mode                 | Class Pattern             | How It Works                                                                                                                               |
+| -------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Native** (default) | `Rust*NativeOrchestrator` | Hot-path orchestration (routing, blocking control, recovery) is executed as a single FFI call into the Rust core. Minimal Python overhead. |
-| **Delegated** | `Rust*Orchestrator` | Rust handles storage only. Orchestration logic (status transitions, blocking decisions) runs in Python via pynenc's `BaseOrchestrator`. |
+| **Delegated**        | `Rust*Orchestrator`       | Rust handles storage only. Orchestration logic (status transitions, blocking decisions) runs in Python via pynenc's `BaseOrchestrator`.    |
 
 ### When to Use Each Mode
 
@@ -92,10 +92,10 @@ pure-Python backend, delegated mode is used to ensure compatibility.
 
 Two runner types are available:
 
-| Runner | Use Case | How It Works |
-| ------ | -------- | ------------ |
-| `RustMemRunner` | Pure-Rust task execution | Rust polls, executes, and stores — no Python in the hot path. Single-threaded. |
-| `RustPythonRunner` | Hybrid execution | Python loop + Rust `run_one()` per invocation. Supports any Python task. |
+| Runner             | Use Case                 | How It Works                                                                   |
+| ------------------ | ------------------------ | ------------------------------------------------------------------------------ |
+| `RustMemRunner`    | Pure-Rust task execution | Rust polls, executes, and stores — no Python in the hot path. Single-threaded. |
+| `RustPythonRunner` | Hybrid execution         | Python loop + Rust `run_one()` per invocation. Supports any Python task.       |
 
 Both runners share a `RustTaskRunnerBuilder` that wires the Rust backends
 from the app's existing component instances — the Python adapters expose

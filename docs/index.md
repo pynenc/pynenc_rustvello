@@ -90,13 +90,13 @@ Auto-generated API documentation.
 
 ## Ecosystem
 
-| Package | Description |
-| ------- | ----------- |
-| [pynenc](https://pynenc.readthedocs.io) | Core distributed task framework |
-| [rustvello](https://github.com/pynenc/rustvello) | Rust engine powering this plugin |
-| [pynenc-redis](https://pynenc-redis.readthedocs.io) | Pure-Python Redis backend |
-| [pynenc-mongo](https://github.com/pynenc/pynenc_mongo) | Pure-Python MongoDB backend |
-| [pynenc-rabbitmq](https://github.com/pynenc/pynenc_rabbitmq) | Pure-Python RabbitMQ broker |
+| Package                                                      | Description                      |
+| ------------------------------------------------------------ | -------------------------------- |
+| [pynenc](https://pynenc.readthedocs.io)                      | Core distributed task framework  |
+| [rustvello](https://github.com/pynenc/rustvello)             | Rust engine powering this plugin |
+| [pynenc-redis](https://pynenc-redis.readthedocs.io)          | Pure-Python Redis backend        |
+| [pynenc-mongo](https://github.com/pynenc/pynenc_mongo)       | Pure-Python MongoDB backend      |
+| [pynenc-rabbitmq](https://github.com/pynenc/pynenc_rabbitmq) | Pure-Python RabbitMQ broker      |
 
 ```{toctree}
 :maxdepth: 2

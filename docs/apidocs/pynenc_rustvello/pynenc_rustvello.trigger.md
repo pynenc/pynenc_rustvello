@@ -1,6 +1,7 @@
 # {py:mod}`pynenc_rustvello.trigger`
 
 ```{py:module} pynenc_rustvello.trigger
+
 ```
 
 ```{autodoc2-docstring} pynenc_rustvello.trigger

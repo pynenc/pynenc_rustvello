@@ -1,6 +1,7 @@
 # {py:mod}`pynenc_rustvello.builder`
 
 ```{py:module} pynenc_rustvello.builder
+
 ```
 
 ```{autodoc2-docstring} pynenc_rustvello.builder

@@ -1,6 +1,7 @@
 # {py:mod}`pynenc_rustvello.runner`
 
 ```{py:module} pynenc_rustvello.runner
+
 ```
 
 ```{autodoc2-docstring} pynenc_rustvello.runner

@@ -1,6 +1,7 @@
 # {py:mod}`pynenc_rustvello.client_data_store`
 
 ```{py:module} pynenc_rustvello.client_data_store
+
 ```
 
 ```{autodoc2-docstring} pynenc_rustvello.client_data_store

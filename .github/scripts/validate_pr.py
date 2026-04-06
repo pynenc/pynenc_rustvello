@@ -85,8 +85,7 @@ class PRValidator:
 
         if len(title) < self.MIN_TITLE_LENGTH:
             self.errors.append(
-                f"❌ **Title too short**: Must be at least {self.MIN_TITLE_LENGTH} characters "
-                f"(currently {len(title)})"
+                f"❌ **Title too short**: Must be at least {self.MIN_TITLE_LENGTH} characters (currently {len(title)})"
             )
 
     def _validate_conventional_commit_format(self) -> None:
@@ -116,9 +115,7 @@ class PRValidator:
         clean_body = clean_body.strip()
 
         if not clean_body:
-            self.errors.append(
-                "❌ **No description**: Please add a description explaining what this PR does."
-            )
+            self.errors.append("❌ **No description**: Please add a description explaining what this PR does.")
             return
 
         if len(clean_body) < self.MIN_DESCRIPTION_LENGTH:

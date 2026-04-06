@@ -25,13 +25,13 @@ For full Rust task execution, use
 
 ## Components
 
-| Component             | Backends                                           | Role                                    |
-| --------------------- | -------------------------------------------------- | --------------------------------------- |
-| **Broker**            | Mem, SQLite, Redis, Postgres, Mongo, RabbitMQ      | Task queue / message delivery           |
-| **Orchestrator**      | Mem, SQLite, Redis, Postgres, Mongo (native + delegated) | Status tracking, blocking, recovery |
-| **State Backend**     | Mem, SQLite, Redis, Postgres, Mongo                | Invocation state, results, exceptions   |
-| **Client Data Store** | Mem, SQLite, Redis, Postgres, Mongo                | Argument caching for large payloads     |
-| **Trigger**           | Mem, SQLite, Redis, Postgres, Mongo                | Event-driven & cron-based scheduling    |
+| Component             | Backends                                                 | Role                                  |
+| --------------------- | -------------------------------------------------------- | ------------------------------------- |
+| **Broker**            | Mem, SQLite, Redis, Postgres, Mongo, RabbitMQ            | Task queue / message delivery         |
+| **Orchestrator**      | Mem, SQLite, Redis, Postgres, Mongo (native + delegated) | Status tracking, blocking, recovery   |
+| **State Backend**     | Mem, SQLite, Redis, Postgres, Mongo                      | Invocation state, results, exceptions |
+| **Client Data Store** | Mem, SQLite, Redis, Postgres, Mongo                      | Argument caching for large payloads   |
+| **Trigger**           | Mem, SQLite, Redis, Postgres, Mongo                      | Event-driven & cron-based scheduling  |
 
 ## Installation
 
@@ -118,13 +118,13 @@ Full documentation: [pynenc-rustvello.readthedocs.io](https://pynenc-rustvello.r
 
 ## Ecosystem
 
-| Package | Description |
-| ------- | ----------- |
-| [pynenc](https://github.com/pynenc/pynenc) | Core distributed task framework |
-| [rustvello](https://github.com/pynenc/rustvello) | Rust engine powering this plugin |
-| [pynenc-redis](https://github.com/pynenc/pynenc_redis) | Pure-Python Redis backend |
-| [pynenc-mongo](https://github.com/pynenc/pynenc_mongo) | Pure-Python MongoDB backend |
-| [pynenc-rabbitmq](https://github.com/pynenc/pynenc_rabbitmq) | Pure-Python RabbitMQ broker |
+| Package                                                      | Description                      |
+| ------------------------------------------------------------ | -------------------------------- |
+| [pynenc](https://github.com/pynenc/pynenc)                   | Core distributed task framework  |
+| [rustvello](https://github.com/pynenc/rustvello)             | Rust engine powering this plugin |
+| [pynenc-redis](https://github.com/pynenc/pynenc_redis)       | Pure-Python Redis backend        |
+| [pynenc-mongo](https://github.com/pynenc/pynenc_mongo)       | Pure-Python MongoDB backend      |
+| [pynenc-rabbitmq](https://github.com/pynenc/pynenc_rabbitmq) | Pure-Python RabbitMQ broker      |
 
 ## Development
 

@@ -1,6 +1,7 @@
 # {py:mod}`pynenc_rustvello.broker`
 
 ```{py:module} pynenc_rustvello.broker
+
 ```
 
 ```{autodoc2-docstring} pynenc_rustvello.broker

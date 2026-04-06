@@ -1,6 +1,7 @@
 # {py:mod}`pynenc_rustvello.conf.config_runner`
 
 ```{py:module} pynenc_rustvello.conf.config_runner
+
 ```
 
 ```{autodoc2-docstring} pynenc_rustvello.conf.config_runner
