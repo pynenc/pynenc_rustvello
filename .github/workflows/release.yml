@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env:
+  UV_NO_SOURCES: "1"
+
 jobs:
   check-version:
     name: Check Version
@@ -41,7 +44,7 @@ jobs:
         with:
           tag-template: "v{VERSION}"
           version-command: |
-            python -c "import tomllib, pathlib; print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])"
+            python -c "import tomllib, pathlib; p=pathlib.Path('pyproject.toml'); print(tomllib.loads(p.read_text())['project']['version'] if p.exists() else '0.0.0')"
 
       - name: Extract bare version from tag
         id: extract-version

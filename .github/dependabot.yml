@@ -10,6 +10,10 @@ updates:
     labels:
       - "dependencies"
       - "chore"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -20,3 +24,7 @@ updates:
     labels:
       - "ci"
       - "skip-changelog"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
