@@ -1,0 +1,64 @@
+---
+- name: breaking
+  description: Breaking Changes
+  color: 7c3ea5
+- name: bug
+  description: Something isn't working
+  color: d73a4a
+- name: build
+  description: Changes that affect the build system or external dependencies
+  color: fc964e
+- name: ci
+  description: Changes to CI configuration files and scripts
+  color: 00485e
+- name: dependencies
+  description: Dependencies
+  color: 00ce44
+- name: documentation
+  description: Improvements or additions to documentation
+  color: 0075ca
+- name: duplicate
+  description: This issue or pull request already exists
+  color: cfd3d7
+- name: enhancement
+  description: New feature or request
+  color: a2eeef
+- name: feature
+  description: New features
+  color: a2eeef
+- name: fix
+  description: Bug fixes
+  color: d73a4a
+- name: good first issue
+  description: Good for newcomers
+  color: 7057ff
+- name: help wanted
+  description: Extra attention is needed
+  color: 008672
+- name: invalid
+  description: This doesn't seem right
+  color: e4e669
+- name: chore
+  description: Maintenance tasks
+  color: "999999"
+- name: refactor
+  description: Code changes that neither fix a bug nor add a feature
+  color: f3ffb2
+- name: major
+  description: Introduces incompatible API changes
+  color: 7c3ea5
+- name: minor
+  description: Adds functionality in a backwards-compatible manner
+  color: a2eeef
+- name: patch
+  description: Backwards-compatible bug fixes
+  color: 00ce44
+- name: skip-changelog
+  description: Exclude from release notes
+  color: ededed
+- name: test
+  description: Testing improvements
+  color: bfd4f2
+- name: wontfix
+  description: This will not be worked on
+  color: ffffff

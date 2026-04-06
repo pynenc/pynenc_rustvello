@@ -1,0 +1,126 @@
+[project]
+name = "pynenc-rustvello"
+version = "0.1.0"
+description = "Rust-powered backend plugin for pynenc (via rustvello)."
+authors = [{ name = "Luis Diaz", email = "code.luis.diaz@proton.me" }]
+license = { text = "MIT License" }
+readme = "README.md"
+requires-python = ">=3.12,<4.0"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Distributed Computing",
+]
+
+dependencies = [
+    "pynenc>=0.1.0",
+    "rustvello>=0.1.0",
+]
+
+[project.urls]
+Homepage = "https://pynenc.org"
+Documentation = "https://docs.pynenc.org/plugins/rustvello"
+Repository = "https://github.com/pynenc/pynenc_rustvello"
+
+[project.entry-points."pynenc.plugins"]
+rustvello_builder = "pynenc_rustvello.builder:RustvelloBuilderPlugin"
+rustvello_broker = "pynenc_rustvello.broker"
+rustvello_orchestrator = "pynenc_rustvello.orchestrator"
+rustvello_orchestrator_backends = "pynenc_rustvello.orchestrator_backends"
+rustvello_state_backend = "pynenc_rustvello.state_backend"
+rustvello_client_data_store = "pynenc_rustvello.client_data_store"
+rustvello_trigger = "pynenc_rustvello.trigger"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2.0",
+    "pytest-asyncio>=0.25.3",
+    "pytest-timeout>=2.2.0",
+    "coverage[toml]>=7.2.6,<8.0",
+    "mypy>=1.7.0",
+    "ruff>=0.14.0",
+    "pre-commit>=3.5.0",
+]
+tests = [
+    "pynenc[tests]>=0.1.0",
+    "testcontainers[postgres,redis,rabbitmq,mongodb]>=4.13.0",
+    "pymongo>=4.6.0",
+]
+docs = [
+    "sphinx>=8.0,<9",
+    "myst-parser>=4.0",
+    "furo>=2024",
+    "sphinx-copybutton>=0.5.2",
+    "sphinx-design>=0.6.0",
+    "sphinx-inline-tabs>=2023.4.21",
+    "sphinx-autodoc2>=0.5.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+managed = true
+
+# Dev-time local overrides — paths relative to pynenc_rustvello_repo/
+# inside the rustvello workspace
+[tool.uv.sources]
+pynenc = { path = "../pynenc_repo", editable = true }
+rustvello = { path = "../py-rustvello", editable = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+lint.select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+    "UP", # pyupgrade
+]
+lint.ignore = [
+    "E501",  # line too long (handled by formatter)
+    "C901",  # too complex
+    "UP037", # remove quotes from type annotation
+]
+
+[tool.ruff.lint.per-file-ignores]
+"pynenc_rustvello/__init__.py" = ["E402"]
+"tests/integration/containers/conftest.py" = ["E402"]
+"tests/**/*.py" = ["F403", "B017"]
+
+[tool.mypy]
+files = ["pynenc_rustvello"]
+warn_unused_configs = true
+ignore_missing_imports = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+exclude = "venv|env|\\.venv"
+show_error_codes = true
+pretty = true
+allow_redefinition = true
+no_implicit_optional = true
+strict_equality = true
+
+[tool.coverage.run]
+source = ["pynenc_rustvello"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.",
+]

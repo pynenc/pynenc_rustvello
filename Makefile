@@ -1,0 +1,124 @@
+.PHONY: install
+install:
+	@echo "Installing dependencies via UV with all extras and test dependencies..."
+	uv sync --all-extras --all-groups
+
+.PHONY: refresh-deps
+refresh-deps:
+	@echo "Refreshing uv cache and checking for dependency updates..."
+	rm -f uv.lock
+	uv lock --refresh --upgrade-package pynenc --upgrade-package rustvello
+	uv sync --all-extras --all-groups --refresh
+
+.PHONY: install-pre-commit
+install-pre-commit: install
+	@echo "Installing pre-commit hooks..."
+	uv run pre-commit install
+
+.PHONY: pre-commit
+pre-commit:
+	@echo "Running pre-commit on all files..."
+	uv run pre-commit run --all-files
+
+.PHONY: lint
+lint:
+	@echo "Running ruff checks..."
+	uv run ruff check pynenc_rustvello/ tests/
+	uv run ruff format --check pynenc_rustvello/ tests/
+
+.PHONY: format
+format:
+	@echo "Formatting code..."
+	uv run ruff check --fix pynenc_rustvello/ tests/
+	uv run ruff format pynenc_rustvello/ tests/
+
+.PHONY: typecheck
+typecheck:
+	@echo "Running mypy..."
+	uv run mypy pynenc_rustvello/
+
+.PHONY: clean
+clean:
+	@echo "Cleaning previous coverage data and HTML reports..."
+	rm -f .coverage .coverage.*
+	rm -rf htmlcov
+
+.PHONY: test-unit
+test-unit: clean
+	@echo "Running unit tests with coverage..."
+	uv run coverage run -m pytest tests/unit
+	uv run coverage report
+	uv run coverage html --show-contexts --title "Unit Test Coverage"
+
+.PHONY: test-integration
+test-integration: clean
+	@echo "Running integration tests with coverage..."
+	uv run coverage run -m pytest tests/integration
+	uv run coverage report
+	uv run coverage html --show-contexts --title "Integration Test Coverage"
+
+.PHONY: test
+test: clean
+	@echo "Running all tests with combined coverage..."
+	uv run coverage erase
+	uv run coverage run -m pytest tests/unit
+	uv run coverage run --append -m pytest tests/integration
+	uv run coverage report
+	uv run coverage html --show-contexts --title "Combined Test Coverage"
+
+.PHONY: test-ci
+test-ci: clean
+	@echo "Running tests in CI mode (separate coverage files)..."
+	uv run coverage run -m pytest tests/unit
+	cp .coverage coverage.unit
+	uv run coverage run -m pytest tests/integration
+	cp .coverage coverage.integration
+	$(MAKE) combine-coverage
+
+.PHONY: combine-coverage
+combine-coverage:
+	@echo "Combining coverage data..."
+	uv run coverage combine coverage.unit coverage.integration
+	uv run coverage report
+	uv run coverage html --show-contexts --title "Combined Test Coverage"
+
+.PHONY: coverage
+coverage:
+	@echo "Displaying coverage report..."
+	uv run coverage report
+
+.PHONY: htmlcov
+htmlcov:
+	@echo "Generating HTML coverage report..."
+	uv run coverage html --show-contexts --title "Coverage Report"
+
+.PHONY: build
+build:
+	@echo "Building wheel file..."
+	uvx --from build pyproject-build --installer uv
+
+.PHONY: publish
+publish:
+	@echo "Publishing to PyPI..."
+	uvx twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
+
+.PHONY: docs
+docs:
+	@echo "Building documentation..."
+	rm -rf docs/_build
+	uv run --group docs sphinx-build -b html docs docs/_build/html
+	@echo "Docs built — open docs/_build/html/index.html in a browser."
+
+.PHONY: docs-serve
+docs-serve: docs
+	@echo "Serving docs at http://localhost:8080 ..."
+	uv run --group docs python -m http.server 8080 --directory docs/_build/html
+
+.PHONY: docs-preview
+docs-preview: docs
+	@echo "Serving clean build at http://localhost:8080 ..."
+	uv run --group docs python -m http.server 8080 --directory docs/_build/html
+
+.PHONY: check
+check: lint typecheck test
+	@echo "All checks passed."
