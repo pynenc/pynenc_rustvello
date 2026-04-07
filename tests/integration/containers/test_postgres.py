@@ -46,12 +46,12 @@ class TestPostgresConnectionLifecycle:
         """Two independent apps against the same Postgres instance."""
         app1 = (
             PynencBuilder()
-            .rustvello(backend="postgres", postgres_url=postgres_url, app_id="pg_iso_1")
+            .rustvello(backend="postgres", postgres_url=postgres_url, app_id="postgres_iso_1")
             .build()
         )
         app2 = (
             PynencBuilder()
-            .rustvello(backend="postgres", postgres_url=postgres_url, app_id="pg_iso_2")
+            .rustvello(backend="postgres", postgres_url=postgres_url, app_id="postgres_iso_2")
             .build()
         )
         try:
