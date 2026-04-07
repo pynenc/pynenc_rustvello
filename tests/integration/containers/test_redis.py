@@ -11,7 +11,6 @@ import pytest
 from pynenc import PynencBuilder
 from pynenc.call import Call
 from pynenc.invocation import DistributedInvocation, InvocationStatus
-from pynenc.runner.runner_context import RunnerContext
 from pynenc_tests.conftest import MockPynenc
 
 if TYPE_CHECKING:
@@ -25,10 +24,6 @@ _mock = MockPynenc()
 @_mock.task
 def redis_task(x: int) -> int:
     return x + 1
-
-
-def _runner_ctx() -> RunnerContext:
-    return RunnerContext(runner_cls="TestRunner", runner_id="test-redis-runner")
 
 
 class TestRedisConnectionLifecycle:
@@ -70,9 +65,7 @@ class TestRedisConnectionLifecycle:
         inv = DistributedInvocation.isolated(Call(redis_task))
 
         redis_app.broker.route_invocation(inv.invocation_id)
-        redis_app.orchestrator.set_invocation_status(
-            inv.invocation_id, InvocationStatus.REGISTERED, _runner_ctx()
-        )
+        redis_app.orchestrator.register_new_invocations([inv])
         redis_app.state_backend.upsert_invocations([inv])
         retrieved = redis_app.state_backend.get_invocation(inv.invocation_id)
         assert retrieved == inv
