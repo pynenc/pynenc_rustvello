@@ -21,7 +21,9 @@ if TYPE_CHECKING:
     from pynenc.types import Params, Result
 
 
-def _record_from_rust(status_str: str, runner_id: str | None, ts: float) -> InvocationStatusRecord:
+def _record_from_rust(
+    status_str: str, runner_id: str | None, ts: float
+) -> InvocationStatusRecord:
     """Build a pynenc InvocationStatusRecord from Rust return values."""
     return InvocationStatusRecord(
         status=InvocationStatus[status_str],
@@ -47,7 +49,9 @@ class _RustBlockingControl(BaseBlockingControl):
     def release_waiters(self, waited_invocation_id: InvocationId) -> None:
         self._rust.release_waiters(str(waited_invocation_id))
 
-    def get_blocking_invocations(self, max_num_invocations: int) -> Iterator[InvocationId]:
+    def get_blocking_invocations(
+        self, max_num_invocations: int
+    ) -> Iterator[InvocationId]:
         from pynenc.identifiers.invocation_id import InvocationId
 
         for inv_id_str in self._rust.get_blocking_invocations(max_num_invocations):
@@ -81,7 +85,11 @@ class _RustvelloOrchestrator(BaseOrchestrator):
         for inv in invocations:
             inv_id = str(inv.invocation_id)
             task_id = inv.call.task.task_id
-            args = dict(inv.call.serialized_arguments) if hasattr(inv.call, "serialized_arguments") else {}
+            args = (
+                dict(inv.call.serialized_arguments)
+                if hasattr(inv.call, "serialized_arguments")
+                else {}
+            )
             status_str, rid, ts = self._rust.register_invocation_with_id(
                 inv_id,
                 str(task_id.module),
@@ -98,7 +106,9 @@ class _RustvelloOrchestrator(BaseOrchestrator):
     # Status management — delegated to Rust
     # ------------------------------------------------------------------
 
-    def get_invocation_status_record(self, invocation_id: InvocationId) -> InvocationStatusRecord:
+    def get_invocation_status_record(
+        self, invocation_id: InvocationId
+    ) -> InvocationStatusRecord:
         status_str, runner_id, ts = self._rust.get_invocation_status(str(invocation_id))
         return _record_from_rust(status_str, runner_id, ts)
 
@@ -116,7 +126,9 @@ class _RustvelloOrchestrator(BaseOrchestrator):
 
         inv_id = str(invocation_id)
         try:
-            status_str, rid, ts = self._rust.set_invocation_status(inv_id, status.name, runner_id)
+            status_str, rid, ts = self._rust.set_invocation_status(
+                inv_id, status.name, runner_id
+            )
         except StatusOwnershipError as e:
             raise InvocationStatusOwnershipError(
                 from_status=InvocationStatus[e.from_status],
@@ -129,7 +141,9 @@ class _RustvelloOrchestrator(BaseOrchestrator):
             raise InvocationStatusTransitionError(
                 from_status=InvocationStatus[e.from_status],
                 to_status=InvocationStatus[e.to_status],
-                allowed_statuses=frozenset(InvocationStatus[s] for s in e.allowed_statuses),
+                allowed_statuses=frozenset(
+                    InvocationStatus[s] for s in e.allowed_statuses
+                ),
             ) from e
         return _record_from_rust(status_str, rid, ts)
 
@@ -160,7 +174,9 @@ class _RustvelloOrchestrator(BaseOrchestrator):
     def get_task_invocation_ids(self, task_id: TaskId) -> Iterator[InvocationId]:
         from pynenc.identifiers.invocation_id import InvocationId
 
-        for inv_id in self._rust.get_invocations_by_task(str(task_id.module), str(task_id.func_name)):
+        for inv_id in self._rust.get_invocations_by_task(
+            str(task_id.module), str(task_id.func_name)
+        ):
             yield InvocationId(inv_id)
 
     def get_invocation_ids_paginated(
@@ -175,7 +191,9 @@ class _RustvelloOrchestrator(BaseOrchestrator):
         task_module = str(task_id.module) if task_id else None
         task_name = str(task_id.func_name) if task_id else None
         status_strs = [s.name for s in statuses] if statuses else None
-        ids = self._rust.get_invocation_ids_paginated(task_module, task_name, status_strs, limit, offset)
+        ids = self._rust.get_invocation_ids_paginated(
+            task_module, task_name, status_strs, limit, offset
+        )
         return [InvocationId(i) for i in ids]
 
     def count_invocations(
@@ -198,7 +216,9 @@ class _RustvelloOrchestrator(BaseOrchestrator):
     # Concurrency control — delegated to Rust
     # ------------------------------------------------------------------
 
-    def index_arguments_for_concurrency_control(self, invocation: DistributedInvocation[Params, Result]) -> None:
+    def index_arguments_for_concurrency_control(
+        self, invocation: DistributedInvocation[Params, Result]
+    ) -> None:
         inv_id = str(invocation.invocation_id)
         task_id = invocation.call.task.task_id
         # Index ALL serialized arguments (not just CC key args) so that
@@ -206,7 +226,9 @@ class _RustvelloOrchestrator(BaseOrchestrator):
         # pynenc's MemOrchestrator behaviour.
         args = invocation.call.serialized_arguments
         cc_args = dict(args) if args else None
-        self._rust.index_for_concurrency_control(inv_id, str(task_id.module), str(task_id.func_name), cc_args)
+        self._rust.index_for_concurrency_control(
+            inv_id, str(task_id.module), str(task_id.func_name), cc_args
+        )
 
     # ------------------------------------------------------------------
     # Auto purge — delegated to Rust
@@ -216,7 +238,9 @@ class _RustvelloOrchestrator(BaseOrchestrator):
         self._rust.schedule_auto_purge(str(invocation_id))
 
     def auto_purge(self) -> None:
-        max_age_secs = int(self.app.orchestrator.conf.auto_final_invocation_purge_hours * 3600)
+        max_age_secs = int(
+            self.app.orchestrator.conf.auto_final_invocation_purge_hours * 3600
+        )
         purged_ids = self._rust.run_auto_purge(max_age_secs)
         for inv_id in purged_ids:
             from pynenc.identifiers.invocation_id import InvocationId
@@ -283,9 +307,17 @@ class _RustvelloOrchestrator(BaseOrchestrator):
         for runner_id in runner_ids:
             self._rust.register_heartbeat(runner_id, can_run_atomic_service)
 
-    def record_atomic_service_execution(self, runner_id: str, start_time: Any, end_time: Any) -> None:
-        start_ts = start_time.timestamp() if hasattr(start_time, "timestamp") else float(start_time)
-        end_ts = end_time.timestamp() if hasattr(end_time, "timestamp") else float(end_time)
+    def record_atomic_service_execution(
+        self, runner_id: str, start_time: Any, end_time: Any
+    ) -> None:
+        start_ts = (
+            start_time.timestamp()
+            if hasattr(start_time, "timestamp")
+            else float(start_time)
+        )
+        end_ts = (
+            end_time.timestamp() if hasattr(end_time, "timestamp") else float(end_time)
+        )
         self._rust.record_atomic_service_execution(runner_id, start_ts, end_ts)
 
     def get_atomic_service_timeline(self) -> list[dict]:
@@ -340,7 +372,9 @@ class _RustvelloOrchestrator(BaseOrchestrator):
             if ts <= cutoff:
                 yield InvocationId(inv_id)
 
-    def _get_running_invocations_for_recovery(self, timeout_seconds: float) -> Iterator[InvocationId]:
+    def _get_running_invocations_for_recovery(
+        self, timeout_seconds: float
+    ) -> Iterator[InvocationId]:
         from pynenc.identifiers.invocation_id import InvocationId
 
         rust_runners = self._rust.get_active_runners(86400)

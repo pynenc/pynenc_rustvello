@@ -84,7 +84,9 @@ class _RustvelloNativeOrchestrator(_RustvelloOrchestrator):
 
         self._ensure_rust_app()
         try:
-            self._rust_app.set_invocation_status(str(invocation_id), status.name, runner_ctx.runner_id)
+            self._rust_app.set_invocation_status(
+                str(invocation_id), status.name, runner_ctx.runner_id
+            )
         except StatusOwnershipError as e:
             raise InvocationStatusOwnershipError(
                 from_status=InvocationStatus[e.from_status],
@@ -97,7 +99,9 @@ class _RustvelloNativeOrchestrator(_RustvelloOrchestrator):
             raise InvocationStatusTransitionError(
                 from_status=InvocationStatus[e.from_status],
                 to_status=InvocationStatus[e.to_status],
-                allowed_statuses=frozenset(InvocationStatus[s] for s in e.allowed_statuses),
+                allowed_statuses=frozenset(
+                    InvocationStatus[s] for s in e.allowed_statuses
+                ),
             ) from e
 
     def set_invocation_result(
@@ -108,7 +112,9 @@ class _RustvelloNativeOrchestrator(_RustvelloOrchestrator):
     ) -> None:
         self._ensure_rust_app()
         serialized = self.app.client_data_store.serialize(result)
-        self._rust_app.set_invocation_result(str(invocation.invocation_id), serialized, runner_ctx.runner_id)
+        self._rust_app.set_invocation_result(
+            str(invocation.invocation_id), serialized, runner_ctx.runner_id
+        )
 
     def set_invocation_exception(
         self,
@@ -167,14 +173,21 @@ class _RustvelloNativeOrchestrator(_RustvelloOrchestrator):
         task_id = task.task_id
         reg_cc = task.conf.registration_concurrency
         run_cc = task.conf.running_concurrency
-        index_cc = reg_cc != ConcurrencyControlType.DISABLED or run_cc != ConcurrencyControlType.DISABLED
+        index_cc = (
+            reg_cc != ConcurrencyControlType.DISABLED
+            or run_cc != ConcurrencyControlType.DISABLED
+        )
 
         # Generate new invocation id (same as Python path)
         parent_invocation = context.get_dist_invocation_context(self.app.app_id)
         new_invocation = DistributedInvocation.from_parent(call, parent_invocation)
         new_inv_id = str(new_invocation.invocation_id)
 
-        args = dict(call.serialized_arguments) if hasattr(call, "serialized_arguments") else {}
+        args = (
+            dict(call.serialized_arguments)
+            if hasattr(call, "serialized_arguments")
+            else {}
+        )
         cc_args = (
             dict(call.serialized_args_for_concurrency_check)
             if call.serialized_args_for_concurrency_check is not None

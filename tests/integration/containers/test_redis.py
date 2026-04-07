@@ -43,8 +43,16 @@ class TestRedisConnectionLifecycle:
 
     def test_multiple_apps_same_container(self, redis_url: str) -> None:
         """Two independent apps against the same Redis instance."""
-        app1 = PynencBuilder().rustvello(backend="redis", redis_url=redis_url, app_id="redis_iso_1").build()
-        app2 = PynencBuilder().rustvello(backend="redis", redis_url=redis_url, app_id="redis_iso_2").build()
+        app1 = (
+            PynencBuilder()
+            .rustvello(backend="redis", redis_url=redis_url, app_id="redis_iso_1")
+            .build()
+        )
+        app2 = (
+            PynencBuilder()
+            .rustvello(backend="redis", redis_url=redis_url, app_id="redis_iso_2")
+            .build()
+        )
         try:
             redis_task.app = app1
             inv = DistributedInvocation.isolated(Call(redis_task))
@@ -62,7 +70,9 @@ class TestRedisConnectionLifecycle:
         inv = DistributedInvocation.isolated(Call(redis_task))
 
         redis_app.broker.route_invocation(inv.invocation_id)
-        redis_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.REGISTERED, _runner_ctx())
+        redis_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.REGISTERED, _runner_ctx()
+        )
         redis_app.state_backend.upsert_invocations([inv])
         retrieved = redis_app.state_backend.get_invocation(inv.invocation_id)
         assert retrieved == inv

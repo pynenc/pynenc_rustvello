@@ -55,7 +55,10 @@ def app_instance(
         app = PynencBuilder().app_id(_next_app_id("mem")).rustvello_mem().build()
     elif backend == "sqlite":
         app = (
-            PynencBuilder().app_id(_next_app_id("sqlite")).rustvello_sqlite(sqlite_db_path=temp_sqlite_db_path).build()
+            PynencBuilder()
+            .app_id(_next_app_id("sqlite"))
+            .rustvello_sqlite(sqlite_db_path=temp_sqlite_db_path)
+            .build()
         )
     else:
         raise ValueError(f"Unknown backend: {backend}")

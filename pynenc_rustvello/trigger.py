@@ -158,7 +158,9 @@ def _reconstruct_trigger_dto(trigger_json_str: str) -> TriggerDefinitionDTO:
     task_data = data["task_id"]
     task_id = TaskId(module=task_data["module"], func_name=task_data["name"])
     logic = CompositeLogic.AND if data["logic"] in ("And", "AND") else CompositeLogic.OR
-    arg_json = json.dumps(data["argument_template"]) if data.get("argument_template") else None
+    arg_json = (
+        json.dumps(data["argument_template"]) if data.get("argument_template") else None
+    )
     return TriggerDefinitionDTO(
         trigger_id=data["trigger_id"],
         task_id=task_id,
@@ -241,7 +243,9 @@ class _RustTriggerBase(BaseTrigger):
                 filter_json = json.dumps(condition.payload_filter.filter_args)
             self._rust.register_event_condition(condition.event_code, filter_json)
 
-    def _register_source_task_condition(self, task_id: TaskId, condition_id: ConditionId) -> None:
+    def _register_source_task_condition(
+        self, task_id: TaskId, condition_id: ConditionId
+    ) -> None:
         # Rust's register_condition() automatically indexes by source task IDs,
         # so no additional registration is needed here.
         pass
@@ -279,14 +283,18 @@ class _RustTriggerBase(BaseTrigger):
             return None
         return _reconstruct_trigger_dto(trigger_json)
 
-    def get_triggers_for_condition(self, condition_id: str) -> list[TriggerDefinitionDTO]:
+    def get_triggers_for_condition(
+        self, condition_id: str
+    ) -> list[TriggerDefinitionDTO]:
         trigger_jsons = self._rust.get_triggers_for_condition(condition_id)
         return [_reconstruct_trigger_dto(j) for j in trigger_jsons]
 
     def get_conditions_sourced_from_task(
         self, task_id: TaskId, context_type: type[ConditionContext] | None = None
     ) -> list[TriggerCondition]:
-        pairs = self._rust.get_conditions_for_task(str(task_id.module), str(task_id.func_name))
+        pairs = self._rust.get_conditions_for_task(
+            str(task_id.module), str(task_id.func_name)
+        )
         conditions: list[TriggerCondition] = []
         for _cid, cond_json in pairs:
             cond = _reconstruct_condition(cond_json)
@@ -342,12 +350,16 @@ class _RustTriggerBase(BaseTrigger):
         expected_last_execution: datetime | None = None,
     ) -> bool:
         exec_ts = execution_time.timestamp()
-        expected_ts = expected_last_execution.timestamp() if expected_last_execution else None
+        expected_ts = (
+            expected_last_execution.timestamp() if expected_last_execution else None
+        )
         return self._rust.store_cron_execution(str(condition_id), exec_ts, expected_ts)
 
     # ── Trigger claim ──────────────────────────────────────────────
 
-    def claim_trigger_run(self, trigger_run_id: str, expiration_seconds: int = 60) -> bool:
+    def claim_trigger_run(
+        self, trigger_run_id: str, expiration_seconds: int = 60
+    ) -> bool:
         return self._rust.claim_trigger_run(trigger_run_id)
 
     # ── Cleanup ────────────────────────────────────────────────────

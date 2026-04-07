@@ -73,7 +73,9 @@ from pynenc.exceptions import (
 def test_pynenc_exception_hierarchy(exc_cls: type, parents: list[type]) -> None:
     """Every pynenc exception must be a subclass of its documented parents."""
     for parent in parents:
-        assert issubclass(exc_cls, parent), f"{exc_cls.__name__} is not a subclass of {parent.__name__}"
+        assert issubclass(exc_cls, parent), (
+            f"{exc_cls.__name__} is not a subclass of {parent.__name__}"
+        )
 
 
 # ── rustvello (Rust-defined) hierarchy ───────────────────────────────
@@ -118,5 +120,9 @@ def test_rustvello_exception_hierarchy(exc_name: str, parent_names: list[str]) -
     """Every Rust-defined exception must be a subclass of its documented parents."""
     exc_cls = getattr(rv, exc_name)
     for parent_name in parent_names:
-        parent_cls = Exception if parent_name == "Exception" else getattr(rv, parent_name)
-        assert issubclass(exc_cls, parent_cls), f"rustvello.{exc_name} is not a subclass of rustvello.{parent_name}"
+        parent_cls = (
+            Exception if parent_name == "Exception" else getattr(rv, parent_name)
+        )
+        assert issubclass(exc_cls, parent_cls), (
+            f"rustvello.{exc_name} is not a subclass of rustvello.{parent_name}"
+        )

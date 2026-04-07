@@ -910,6 +910,7 @@ tests = [
     { name = "psutil" },
     { name = "pymongo" },
     { name = "pynenc", extra = ["tests"] },
+    { name = "pytest-timeout" },
     { name = "testcontainers", extra = ["mongodb", "rabbitmq", "redis"] },
 ]
 
@@ -942,6 +943,7 @@ tests = [
     { name = "psutil", specifier = ">=7.0.0" },
     { name = "pymongo", specifier = ">=4.6.0" },
     { name = "pynenc", extras = ["tests"], editable = "../pynenc_repo" },
+    { name = "pytest-timeout", specifier = ">=2.2.0" },
     { name = "testcontainers", extras = ["postgres", "redis", "rabbitmq", "mongodb"], specifier = ">=4.13.0" },
 ]
 

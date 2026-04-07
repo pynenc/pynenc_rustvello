@@ -4,6 +4,15 @@ Session-scoped containers keep start-up cost low; function-scoped app
 instances with ``purge()`` ensure test isolation.
 
 Requires Docker and ``pynenc[test-integration]``.
+
+Backend filtering
+-----------------
+Set ``RUSTVELLO_TEST_BACKEND`` to run only one backend's tests::
+
+    RUSTVELLO_TEST_BACKEND=postgres pytest tests/integration/
+
+When unset (local dev), all backends run.  CI uses a matrix strategy to
+run each backend in a separate parallel job.
 """
 
 from __future__ import annotations
@@ -28,6 +37,26 @@ if TYPE_CHECKING:
 pytestmark = pytest.mark.integration
 
 # ---------------------------------------------------------------------------
+# Backend filtering — read once, used by every sub-conftest
+# ---------------------------------------------------------------------------
+
+_SELECTED_BACKEND: str | None = os.environ.get("RUSTVELLO_TEST_BACKEND")
+
+
+def filter_backends(all_backends: list[str]) -> list[str]:
+    """Return *all_backends* filtered by ``RUSTVELLO_TEST_BACKEND``.
+
+    When the env var is unset every backend is returned (local dev).
+    When set, only the matching backend is returned; if the requested
+    backend is not in the list the result is empty and pytest will
+    skip the parametrized tests automatically.
+    """
+    if _SELECTED_BACKEND is None:
+        return all_backends
+    return [b for b in all_backends if b == _SELECTED_BACKEND]
+
+
+# ---------------------------------------------------------------------------
 # Unique app_id counter — avoids multiton collisions across tests
 # ---------------------------------------------------------------------------
 
@@ -39,20 +68,24 @@ def _next_app_id(backend: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Session-scoped containers
+# Session-scoped containers (skipped when not selected)
 # ---------------------------------------------------------------------------
+
+
+def _skip_unless_selected(name: str) -> None:
+    """Skip a container fixture when a different backend is selected."""
+    if _SELECTED_BACKEND is not None and _SELECTED_BACKEND != name:
+        pytest.skip(f"RUSTVELLO_TEST_BACKEND={_SELECTED_BACKEND}, skipping {name}")
 
 
 @pytest.fixture(scope="session")
 def postgres_url() -> Generator[str, None, None]:
     """Start a PostgreSQL 16 container and yield a connection URL."""
+    _skip_unless_selected("postgres")
     from testcontainers.postgres import PostgresContainer
 
     with PostgresContainer("postgres:16") as pg:
         url = pg.get_connection_url()
-        # Convert sqlalchemy-style URL to libpq-style conn string
-        # testcontainers returns: postgresql+psycopg2://user:pass@host:port/db
-        # rustvello expects:      host=... port=... user=... password=... dbname=...
         import urllib.parse
 
         parsed = urllib.parse.urlparse(url)
@@ -67,6 +100,7 @@ def postgres_url() -> Generator[str, None, None]:
 @pytest.fixture(scope="session")
 def redis_url() -> Generator[str, None, None]:
     """Start a Redis 7 container and yield a connection URI."""
+    _skip_unless_selected("redis")
     from testcontainers.redis import RedisContainer
 
     with RedisContainer("redis:7") as r:
@@ -78,6 +112,7 @@ def redis_url() -> Generator[str, None, None]:
 @pytest.fixture(scope="session")
 def mongo_url() -> Generator[str, None, None]:
     """Start a MongoDB 7 container and yield a connection URI."""
+    _skip_unless_selected("mongo")
     from testcontainers.mongodb import MongoDbContainer
 
     with MongoDbContainer("mongo:7") as m:
@@ -86,12 +121,8 @@ def mongo_url() -> Generator[str, None, None]:
 
 @pytest.fixture(scope="session")
 def mongo3_url() -> Generator[str, None, None]:
-    """Start a MongoDB 3.6 container and yield a connection URI.
-
-    MongoDB 3.6 does not support transactions, so the rustvello-mongo3
-    backend uses optimistic CAS for status transitions instead of
-    multi-document transactions.
-    """
+    """Start a MongoDB 3.6 container and yield a connection URI."""
+    _skip_unless_selected("mongo3")
     from testcontainers.mongodb import MongoDbContainer
 
     with MongoDbContainer("mongo:3.6") as m:
@@ -190,7 +221,7 @@ def mongo3_app(mongo3_url: str) -> Generator[Pynenc, None, None]:
 
 
 @pytest.fixture(
-    params=["postgres", "redis", "mongo", "mongo3"],
+    params=filter_backends(["postgres", "redis", "mongo", "mongo3"]),
     scope="function",
 )
 def container_app(
@@ -231,6 +262,7 @@ def container_app(
 @pytest.fixture(scope="session")
 def rabbitmq_url() -> Generator[str, None, None]:
     """Start a RabbitMQ 3.13 container and yield an AMQP URI."""
+    _skip_unless_selected("rabbitmq")
     from testcontainers.rabbitmq import RabbitMqContainer
 
     with RabbitMqContainer("rabbitmq:3.13-management") as rmq:
@@ -259,7 +291,9 @@ def rabbitmq_app(
     """Pynenc app using RabbitMQ broker + SQLite for everything else."""
     app = (
         PynencBuilder()
-        .rustvello_sqlite(sqlite_db_path=rabbitmq_sqlite_db_path, app_id=_next_app_id("rabbitmq"))
+        .rustvello_sqlite(
+            sqlite_db_path=rabbitmq_sqlite_db_path, app_id=_next_app_id("rabbitmq")
+        )
         .rustvello_rabbitmq_broker(rabbitmq_url=rabbitmq_url)
         .build()
     )

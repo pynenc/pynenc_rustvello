@@ -61,13 +61,17 @@ def test_rust_mem_classes_are_mem(cls: type) -> None:
 @pytest.mark.parametrize("cls", RUST_SQLITE_CLASSES, ids=lambda c: c.__name__)
 def test_rust_sqlite_classes_are_sqlite(cls: type) -> None:
     """Every class in RUST_SQLITE_CLASSES must be a RustSqlite* adapter."""
-    assert cls.__name__.startswith("RustSqlite"), f"{cls.__name__} is not a RustSqlite* class"
+    assert cls.__name__.startswith("RustSqlite"), (
+        f"{cls.__name__} is not a RustSqlite* class"
+    )
 
 
 def test_no_overlap_between_bundles() -> None:
     """Mem and SQLite class bundles must have no classes in common."""
     overlap = set(RUST_MEM_CLASSES) & set(RUST_SQLITE_CLASSES)
-    assert not overlap, f"Classes appear in both bundles: {[c.__name__ for c in overlap]}"
+    assert not overlap, (
+        f"Classes appear in both bundles: {[c.__name__ for c in overlap]}"
+    )
 
 
 def test_no_python_classes_in_rust_bundles() -> None:
@@ -92,4 +96,6 @@ def test_no_python_classes_in_rust_bundles() -> None:
     }
     all_rust = set(RUST_MEM_CLASSES) | set(RUST_SQLITE_CLASSES)
     leaked = all_rust & python_only
-    assert not leaked, f"Python-only classes found in Rust bundles: {[c.__name__ for c in leaked]}"
+    assert not leaked, (
+        f"Python-only classes found in Rust bundles: {[c.__name__ for c in leaked]}"
+    )

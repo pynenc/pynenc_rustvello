@@ -16,6 +16,8 @@ from pynenc.identifiers.call_id import CallId
 from pynenc.identifiers.invocation_id import InvocationId
 from pynenc.identifiers.task_id import TaskId
 
+from tests.integration.containers.conftest import filter_backends
+
 if TYPE_CHECKING:
     from collections.abc import Generator
 
@@ -41,8 +43,8 @@ def _next_app_id(backend: str) -> str:
 
 
 @pytest.fixture(
-    params=["postgres", "redis", "mongo", "mongo3"],
-    ids=["postgres", "redis", "mongo", "mongo3"],
+    params=filter_backends(["postgres", "redis", "mongo", "mongo3"]),
+    ids=lambda b: b,
     scope="function",
 )
 def app_instance(

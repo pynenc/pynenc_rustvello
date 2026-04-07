@@ -199,7 +199,9 @@ class TestOrchestrator:
         inv = DistributedInvocation.isolated(Call(add))
         ctx = _runner_ctx()
         container_app.orchestrator.register_new_invocations([inv])
-        container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.PENDING, ctx)
+        container_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.PENDING, ctx
+        )
         status = container_app.orchestrator.get_invocation_status(inv.invocation_id)
         assert status == InvocationStatus.PENDING
 
@@ -239,12 +241,21 @@ class TestOrchestrator:
         # Count by task
         assert container_app.orchestrator.count_invocations(task_id=add.task_id) == 2
         # Count by status
-        assert container_app.orchestrator.count_invocations(statuses=[InvocationStatus.REGISTERED]) == 3
+        assert (
+            container_app.orchestrator.count_invocations(
+                statuses=[InvocationStatus.REGISTERED]
+            )
+            == 3
+        )
         # Move one to PENDING, count again
         ctx = _runner_ctx()
-        container_app.orchestrator.set_invocation_status(inv_a1.invocation_id, InvocationStatus.PENDING, ctx)
+        container_app.orchestrator.set_invocation_status(
+            inv_a1.invocation_id, InvocationStatus.PENDING, ctx
+        )
         assert (
-            container_app.orchestrator.count_invocations(task_id=add.task_id, statuses=[InvocationStatus.REGISTERED])
+            container_app.orchestrator.count_invocations(
+                task_id=add.task_id, statuses=[InvocationStatus.REGISTERED]
+            )
             == 1
         )
 
@@ -252,8 +263,12 @@ class TestOrchestrator:
         add.app = container_app
         invs = [DistributedInvocation.isolated(Call(add)) for _ in range(5)]
         container_app.orchestrator.register_new_invocations(invs)
-        page1 = container_app.orchestrator.get_invocation_ids_paginated(task_id=add.task_id, limit=2, offset=0)
-        page2 = container_app.orchestrator.get_invocation_ids_paginated(task_id=add.task_id, limit=2, offset=2)
+        page1 = container_app.orchestrator.get_invocation_ids_paginated(
+            task_id=add.task_id, limit=2, offset=0
+        )
+        page2 = container_app.orchestrator.get_invocation_ids_paginated(
+            task_id=add.task_id, limit=2, offset=2
+        )
         assert len(page1) == 2
         assert len(page2) == 2
         # No overlap
@@ -267,9 +282,13 @@ class TestOrchestrator:
         inv3 = DistributedInvocation.isolated(Call(add))
         container_app.orchestrator.register_new_invocations([inv1, inv2, inv3])
         ctx = _runner_ctx()
-        container_app.orchestrator.set_invocation_status(inv2.invocation_id, InvocationStatus.PENDING, ctx)
+        container_app.orchestrator.set_invocation_status(
+            inv2.invocation_id, InvocationStatus.PENDING, ctx
+        )
         all_ids = [inv1.invocation_id, inv2.invocation_id, inv3.invocation_id]
-        registered = container_app.orchestrator.filter_by_status(all_ids, frozenset({InvocationStatus.REGISTERED}))
+        registered = container_app.orchestrator.filter_by_status(
+            all_ids, frozenset({InvocationStatus.REGISTERED})
+        )
         assert len(registered) == 2
         assert inv1.invocation_id in registered
         assert inv3.invocation_id in registered
@@ -283,7 +302,9 @@ class TestOrchestrator:
         container_app.orchestrator.register_new_invocations([inv])
         ctx = _runner_ctx()
         with pytest.raises(InvocationStatusTransitionError):
-            container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.RUNNING, ctx)
+            container_app.orchestrator.set_invocation_status(
+                inv.invocation_id, InvocationStatus.RUNNING, ctx
+            )
 
     def test_terminal_state_no_transition(self, container_app: Pynenc) -> None:
         if "redis" in container_app.app_id:
@@ -292,11 +313,19 @@ class TestOrchestrator:
         inv = DistributedInvocation.isolated(Call(add))
         container_app.orchestrator.register_new_invocations([inv])
         ctx = _runner_ctx()
-        container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.PENDING, ctx)
-        container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.RUNNING, ctx)
-        container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.SUCCESS, ctx)
+        container_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.PENDING, ctx
+        )
+        container_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.RUNNING, ctx
+        )
+        container_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.SUCCESS, ctx
+        )
         with pytest.raises(InvocationStatusTransitionError):
-            container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.PENDING, ctx)
+            container_app.orchestrator.set_invocation_status(
+                inv.invocation_id, InvocationStatus.PENDING, ctx
+            )
 
     def test_get_missing_invocation(self, container_app: Pynenc) -> None:
         from pynenc.identifiers.invocation_id import InvocationId
@@ -313,12 +342,18 @@ class TestOrchestrator:
         container_app.orchestrator.register_new_invocations([inv])
         ctx_a = _runner_ctx("runner-a")
         ctx_b = _runner_ctx("runner-b")
-        container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.PENDING, ctx_a)
+        container_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.PENDING, ctx_a
+        )
         with pytest.raises(InvocationStatusOwnershipError):
-            container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.RUNNING, ctx_b)
+            container_app.orchestrator.set_invocation_status(
+                inv.invocation_id, InvocationStatus.RUNNING, ctx_b
+            )
 
     def test_get_active_runner_ids(self, container_app: Pynenc) -> None:
-        container_app.orchestrator.register_runner_heartbeats(["active-runner-1"], can_run_atomic_service=False)
+        container_app.orchestrator.register_runner_heartbeats(
+            ["active-runner-1"], can_run_atomic_service=False
+        )
         runners = container_app.orchestrator._get_active_runners(timeout_seconds=60)
         runner_ids = [r.runner_id for r in runners]
         assert "active-runner-1" in runner_ids
@@ -330,7 +365,9 @@ class TestOrchestrator:
         inv = DistributedInvocation.isolated(Call(add))
         container_app.orchestrator.register_new_invocations([inv])
         ctx = _runner_ctx()
-        container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.PENDING, ctx)
+        container_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.PENDING, ctx
+        )
         time.sleep(0.05)
         stale = container_app.orchestrator._rust.get_stale_pending_invocations(0)
         assert str(inv.invocation_id) in stale
@@ -342,8 +379,12 @@ class TestOrchestrator:
         inv = DistributedInvocation.isolated(Call(add))
         container_app.orchestrator.register_new_invocations([inv])
         ctx = _runner_ctx()
-        container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.PENDING, ctx)
-        container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.RUNNING, ctx)
+        container_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.PENDING, ctx
+        )
+        container_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.RUNNING, ctx
+        )
         time.sleep(0.05)
         stale = container_app.orchestrator._rust.get_stale_running_invocations(0)
         assert str(inv.invocation_id) in stale
@@ -405,9 +446,15 @@ class TestLifecycle:
         # register_new_invocations also routes to the broker
         container_app.orchestrator.register_new_invocations([inv])
         ctx = _runner_ctx()
-        container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.PENDING, ctx)
-        container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.RUNNING, ctx)
-        container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.FAILED, ctx)
+        container_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.PENDING, ctx
+        )
+        container_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.RUNNING, ctx
+        )
+        container_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.FAILED, ctx
+        )
         err = RuntimeError("something broke")
         container_app.state_backend.set_exception(inv.invocation_id, err)
         fetched = container_app.state_backend.get_exception(inv.invocation_id)
@@ -430,13 +477,26 @@ class TestLifecycle:
             retrieved = container_app.broker.retrieve_invocation()
             assert retrieved is not None
             retrieved_ids.add(str(retrieved))
-            container_app.orchestrator.set_invocation_status(retrieved, InvocationStatus.PENDING, ctx)
-            container_app.orchestrator.set_invocation_status(retrieved, InvocationStatus.RUNNING, ctx)
-            container_app.orchestrator.set_invocation_status(retrieved, InvocationStatus.SUCCESS, ctx)
+            container_app.orchestrator.set_invocation_status(
+                retrieved, InvocationStatus.PENDING, ctx
+            )
+            container_app.orchestrator.set_invocation_status(
+                retrieved, InvocationStatus.RUNNING, ctx
+            )
+            container_app.orchestrator.set_invocation_status(
+                retrieved, InvocationStatus.SUCCESS, ctx
+            )
         assert retrieved_ids == inv_ids
-        assert container_app.orchestrator.count_invocations(statuses=[InvocationStatus.SUCCESS]) == 3
+        assert (
+            container_app.orchestrator.count_invocations(
+                statuses=[InvocationStatus.SUCCESS]
+            )
+            == 3
+        )
 
-    def test_lifecycle_broker_orchestrator_consistency(self, container_app: Pynenc) -> None:
+    def test_lifecycle_broker_orchestrator_consistency(
+        self, container_app: Pynenc
+    ) -> None:
         """Verify orchestrator tracks invocations independently of broker."""
         add.app = container_app
         inv = DistributedInvocation.isolated(Call(add))
@@ -471,10 +531,14 @@ class TestTriggerStore:
         cond_id = container_app.trigger._rust.register_status_condition(
             str(tid.module), str(tid.func_name), ["SUCCESS"], None
         )
-        pairs = container_app.trigger._rust.get_conditions_for_task(str(tid.module), str(tid.func_name))
+        pairs = container_app.trigger._rust.get_conditions_for_task(
+            str(tid.module), str(tid.func_name)
+        )
         assert any(cid == cond_id for cid, _ in pairs)
         # Unrelated task returns nothing
-        pairs2 = container_app.trigger._rust.get_conditions_for_task("other_module", "other_task")
+        pairs2 = container_app.trigger._rust.get_conditions_for_task(
+            "other_module", "other_task"
+        )
         assert len(pairs2) == 0
 
     def test_event_condition_retrievable(self, container_app: Pynenc) -> None:
@@ -551,7 +615,9 @@ class TestTriggerStore:
             }
         )
         container_app.trigger._rust.register_trigger(trigger_json)
-        container_app.trigger._rust.remove_triggers_for_task(str(tid.module), str(tid.func_name))
+        container_app.trigger._rust.remove_triggers_for_task(
+            str(tid.module), str(tid.func_name)
+        )
         trig = container_app.trigger._rust.get_trigger("trig_to_remove")
         assert trig is None
 
@@ -581,11 +647,19 @@ class TestTriggerStore:
         cond_id = container_app.trigger._rust.register_cron_condition("*/5 * * * *", 0)
         now = datetime.now(UTC).timestamp()
         # First store with no expected → success
-        assert container_app.trigger._rust.store_cron_execution(cond_id, now, None) is True
+        assert (
+            container_app.trigger._rust.store_cron_execution(cond_id, now, None) is True
+        )
         # Same store with no expected → fail (optimistic lock conflict)
-        assert container_app.trigger._rust.store_cron_execution(cond_id, now + 1, None) is False
+        assert (
+            container_app.trigger._rust.store_cron_execution(cond_id, now + 1, None)
+            is False
+        )
         # With correct expected → success
-        assert container_app.trigger._rust.store_cron_execution(cond_id, now + 1, now) is True
+        assert (
+            container_app.trigger._rust.store_cron_execution(cond_id, now + 1, now)
+            is True
+        )
 
     def test_claim_trigger_run_dedup(self, container_app: Pynenc) -> None:
         assert container_app.trigger._rust.claim_trigger_run("run_1") is True
@@ -621,7 +695,9 @@ class TestTriggerStore:
         assert container_app.trigger._rust.store_cron_execution(cond_id, t1, None)
         assert container_app.trigger._rust.store_cron_execution(cond_id, t2, t1)
         # Wrong expected (t1 instead of t2) → rejected
-        assert container_app.trigger._rust.store_cron_execution(cond_id, t3, t1) is False
+        assert (
+            container_app.trigger._rust.store_cron_execution(cond_id, t3, t1) is False
+        )
         # Correct expected (t2)
         assert container_app.trigger._rust.store_cron_execution(cond_id, t3, t2)
         last = container_app.trigger._rust.get_last_cron_execution(cond_id)
@@ -672,7 +748,9 @@ class TestBrokerExtensions:
         inv_a = DistributedInvocation.isolated(Call(add))
         inv_b = DistributedInvocation.isolated(Call(noop))
         container_app.broker.route_invocation_for_task(inv_a.invocation_id, add.task_id)
-        container_app.broker.route_invocation_for_task(inv_b.invocation_id, noop.task_id)
+        container_app.broker.route_invocation_for_task(
+            inv_b.invocation_id, noop.task_id
+        )
         ret_a = container_app.broker.retrieve_invocation_for_task(add.task_id)
         ret_b = container_app.broker.retrieve_invocation_for_task(noop.task_id)
         assert ret_a == inv_a.invocation_id
@@ -683,22 +761,30 @@ class TestBrokerExtensions:
         noop.app = container_app
         for _ in range(3):
             inv = DistributedInvocation.isolated(Call(add))
-            container_app.broker.route_invocation_for_task(inv.invocation_id, add.task_id)
+            container_app.broker.route_invocation_for_task(
+                inv.invocation_id, add.task_id
+            )
         for _ in range(2):
             inv = DistributedInvocation.isolated(Call(noop))
-            container_app.broker.route_invocation_for_task(inv.invocation_id, noop.task_id)
+            container_app.broker.route_invocation_for_task(
+                inv.invocation_id, noop.task_id
+            )
         assert container_app.broker.count_invocations_for_task(add.task_id) == 3
         assert container_app.broker.count_invocations_for_task(noop.task_id) == 2
 
     def test_purge_per_task(self, container_app: Pynenc) -> None:
         if "redis" in container_app.app_id:
-            pytest.skip("Redis broker uses a single queue; per-task purge is not isolated")
+            pytest.skip(
+                "Redis broker uses a single queue; per-task purge is not isolated"
+            )
         add.app = container_app
         noop.app = container_app
         inv_a = DistributedInvocation.isolated(Call(add))
         inv_b = DistributedInvocation.isolated(Call(noop))
         container_app.broker.route_invocation_for_task(inv_a.invocation_id, add.task_id)
-        container_app.broker.route_invocation_for_task(inv_b.invocation_id, noop.task_id)
+        container_app.broker.route_invocation_for_task(
+            inv_b.invocation_id, noop.task_id
+        )
         container_app.broker.purge_task(add.task_id)
         assert container_app.broker.count_invocations_for_task(add.task_id) == 0
         assert container_app.broker.count_invocations_for_task(noop.task_id) == 1
@@ -708,8 +794,12 @@ class TestBrokerExtensions:
         inv_py = DistributedInvocation.isolated(Call(add))
         inv_local = DistributedInvocation.isolated(Call(add))
         # Route one as foreign (python) and one as local (empty language)
-        container_app.broker._rust.route_invocation_for_task(str(inv_py.invocation_id), "py_module", "train")
-        container_app.broker._rust.route_invocation_for_task(str(inv_local.invocation_id), "test_module", "add")
+        container_app.broker._rust.route_invocation_for_task(
+            str(inv_py.invocation_id), "py_module", "train"
+        )
+        container_app.broker._rust.route_invocation_for_task(
+            str(inv_local.invocation_id), "test_module", "add"
+        )
         # Retrieve by language
         ret_py = container_app.broker.retrieve_invocation_for_language("python")
         ret_local = container_app.broker.retrieve_invocation_for_language("")
@@ -745,7 +835,9 @@ class TestOrchestratorExtensions:
         inv = DistributedInvocation.isolated(Call(add))
         container_app.orchestrator.register_new_invocations([inv])
         ctx = _runner_ctx()
-        container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.PENDING, ctx)
+        container_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.PENDING, ctx
+        )
         # Index for CC
         container_app.orchestrator._rust.index_for_concurrency_control(
             str(inv.invocation_id),
@@ -778,7 +870,9 @@ class TestOrchestratorExtensions:
         )
         assert allowed is False
         # Remove from CC index → should be allowed again
-        container_app.orchestrator._rust.remove_from_concurrency_index(str(inv.invocation_id))
+        container_app.orchestrator._rust.remove_from_concurrency_index(
+            str(inv.invocation_id)
+        )
         allowed2 = container_app.orchestrator._rust.check_running_concurrency(
             str(add.task_id.module),
             str(add.task_id.func_name),
@@ -793,7 +887,9 @@ class TestOrchestratorExtensions:
         inv = DistributedInvocation.isolated(Call(add))
         container_app.orchestrator.register_new_invocations([inv])
         ctx = _runner_ctx()
-        container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.PENDING, ctx)
+        container_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.PENDING, ctx
+        )
         args1 = {"x": "1", "y": "2"}
         container_app.orchestrator._rust.index_for_concurrency_control(
             str(inv.invocation_id),
@@ -843,7 +939,9 @@ class TestOrchestratorExtensions:
         inv = DistributedInvocation.isolated(Call(add))
         container_app.orchestrator.register_new_invocations([inv])
         ctx = _runner_ctx()
-        container_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.PENDING, ctx)
+        container_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.PENDING, ctx
+        )
         cc_args = {"x": "100"}
         container_app.orchestrator._rust.index_for_concurrency_control(
             str(inv.invocation_id),
@@ -888,7 +986,9 @@ class TestOrchestratorExtensions:
     def test_atomic_service_timeline(self, container_app: Pynenc) -> None:
         start = datetime.now(UTC)
         end = start + timedelta(seconds=5)
-        container_app.orchestrator.record_atomic_service_execution("timeline-runner", start, end)
+        container_app.orchestrator.record_atomic_service_execution(
+            "timeline-runner", start, end
+        )
         timeline = container_app.orchestrator.get_atomic_service_timeline()
         if timeline:
             entry = timeline[0]

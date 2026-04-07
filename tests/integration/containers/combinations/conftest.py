@@ -22,6 +22,8 @@ from pynenc_tests import util
 from pynenc_tests.integration.combinations import tasks, tasks_async
 from pynenc_tests.util.subclasses import get_runner_subclasses
 
+from tests.integration.containers.conftest import filter_backends
+
 if TYPE_CHECKING:
     from collections.abc import Generator
 
@@ -65,7 +67,7 @@ def _build_combinations() -> list[ContainerAppComponents]:
 # Core fixture override — builds the app against the container backend
 # ---------------------------------------------------------------------------
 
-_BACKEND_PARAMS = ["postgres", "redis", "mongo", "mongo3", "rabbitmq"]
+_BACKEND_PARAMS = filter_backends(["postgres", "redis", "mongo", "mongo3", "rabbitmq"])
 
 
 @pytest.fixture(

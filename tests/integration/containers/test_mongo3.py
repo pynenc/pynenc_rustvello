@@ -113,13 +113,31 @@ class TestMongo3ConnectionLifecycle:
         ctx = _runner_ctx()
 
         mongo3_app.orchestrator.register_new_invocations([inv])
-        assert mongo3_app.orchestrator.get_invocation_status(inv.invocation_id) == InvocationStatus.REGISTERED
+        assert (
+            mongo3_app.orchestrator.get_invocation_status(inv.invocation_id)
+            == InvocationStatus.REGISTERED
+        )
 
-        mongo3_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.PENDING, ctx)
-        assert mongo3_app.orchestrator.get_invocation_status(inv.invocation_id) == InvocationStatus.PENDING
+        mongo3_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.PENDING, ctx
+        )
+        assert (
+            mongo3_app.orchestrator.get_invocation_status(inv.invocation_id)
+            == InvocationStatus.PENDING
+        )
 
-        mongo3_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.RUNNING, ctx)
-        assert mongo3_app.orchestrator.get_invocation_status(inv.invocation_id) == InvocationStatus.RUNNING
+        mongo3_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.RUNNING, ctx
+        )
+        assert (
+            mongo3_app.orchestrator.get_invocation_status(inv.invocation_id)
+            == InvocationStatus.RUNNING
+        )
 
-        mongo3_app.orchestrator.set_invocation_status(inv.invocation_id, InvocationStatus.SUCCESS, ctx)
-        assert mongo3_app.orchestrator.get_invocation_status(inv.invocation_id) == InvocationStatus.SUCCESS
+        mongo3_app.orchestrator.set_invocation_status(
+            inv.invocation_id, InvocationStatus.SUCCESS, ctx
+        )
+        assert (
+            mongo3_app.orchestrator.get_invocation_status(inv.invocation_id)
+            == InvocationStatus.SUCCESS
+        )

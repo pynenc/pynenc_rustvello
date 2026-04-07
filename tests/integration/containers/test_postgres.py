@@ -44,8 +44,16 @@ class TestPostgresConnectionLifecycle:
 
     def test_multiple_apps_same_container(self, postgres_url: str) -> None:
         """Two independent apps against the same Postgres instance."""
-        app1 = PynencBuilder().rustvello(backend="postgres", postgres_url=postgres_url, app_id="pg_iso_1").build()
-        app2 = PynencBuilder().rustvello(backend="postgres", postgres_url=postgres_url, app_id="pg_iso_2").build()
+        app1 = (
+            PynencBuilder()
+            .rustvello(backend="postgres", postgres_url=postgres_url, app_id="pg_iso_1")
+            .build()
+        )
+        app2 = (
+            PynencBuilder()
+            .rustvello(backend="postgres", postgres_url=postgres_url, app_id="pg_iso_2")
+            .build()
+        )
         try:
             pg_task.app = app1
             inv = DistributedInvocation.isolated(Call(pg_task))

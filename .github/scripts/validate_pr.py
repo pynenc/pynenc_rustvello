@@ -115,7 +115,9 @@ class PRValidator:
         clean_body = clean_body.strip()
 
         if not clean_body:
-            self.errors.append("❌ **No description**: Please add a description explaining what this PR does.")
+            self.errors.append(
+                "❌ **No description**: Please add a description explaining what this PR does."
+            )
             return
 
         if len(clean_body) < self.MIN_DESCRIPTION_LENGTH:

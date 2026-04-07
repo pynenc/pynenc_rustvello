@@ -48,6 +48,7 @@ dev = [
 tests = [
     "pynenc[tests]>=0.1.0",
     "psutil>=7.0.0",
+    "pytest-timeout>=2.2.0",
     "testcontainers[postgres,redis,rabbitmq,mongodb]>=4.13.0",
     "pymongo>=4.6.0",
 ]
@@ -77,10 +78,10 @@ rustvello = { path = "../py-rustvello", editable = true }
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+timeout = 30
 
 [tool.ruff]
 target-version = "py312"
-line-length = 120
 lint.select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings

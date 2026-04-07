@@ -13,6 +13,8 @@ from typing import TYPE_CHECKING
 import pytest
 from pynenc import PynencBuilder
 
+from tests.integration.containers.conftest import filter_backends
+
 if TYPE_CHECKING:
     from collections.abc import Generator
 
@@ -38,8 +40,8 @@ def _next_app_id(backend: str) -> str:
 
 
 @pytest.fixture(
-    params=["postgres", "redis", "mongo", "mongo3"],
-    ids=["postgres", "redis", "mongo", "mongo3"],
+    params=filter_backends(["postgres", "redis", "mongo", "mongo3"]),
+    ids=lambda b: b,
     scope="function",
 )
 def app_instance(

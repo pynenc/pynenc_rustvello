@@ -136,13 +136,19 @@ class _RustvelloBroker(BaseBroker):
 
     # ── Per-task / language extensions (Rust-only, not in pynenc ABC) ──
 
-    def route_invocation_for_task(self, invocation_id: InvocationId, task_id: TaskId) -> None:
-        self._rust.route_invocation_for_task(str(invocation_id), str(task_id.module), str(task_id.func_name))
+    def route_invocation_for_task(
+        self, invocation_id: InvocationId, task_id: TaskId
+    ) -> None:
+        self._rust.route_invocation_for_task(
+            str(invocation_id), str(task_id.module), str(task_id.func_name)
+        )
 
     def retrieve_invocation_for_task(self, task_id: TaskId) -> InvocationId | None:
         from pynenc.identifiers.invocation_id import InvocationId
 
-        result = self._rust.retrieve_invocation_for_task(str(task_id.module), str(task_id.func_name))
+        result = self._rust.retrieve_invocation_for_task(
+            str(task_id.module), str(task_id.func_name)
+        )
         if result is None:
             return None
         return InvocationId(result)
@@ -156,7 +162,9 @@ class _RustvelloBroker(BaseBroker):
         return InvocationId(result)
 
     def count_invocations_for_task(self, task_id: TaskId) -> int:
-        return self._rust.count_invocations_for_task(str(task_id.module), str(task_id.func_name))
+        return self._rust.count_invocations_for_task(
+            str(task_id.module), str(task_id.func_name)
+        )
 
     def purge_task(self, task_id: TaskId) -> None:
         self._rust.purge_task(str(task_id.module), str(task_id.func_name))

@@ -138,7 +138,9 @@ def _rustvello_builder_method(
         backend = "mem"
 
     if backend not in _BACKEND_CONFIGS:
-        raise ValueError(f"Unknown rustvello backend {backend!r}. Available: {', '.join(sorted(_BACKEND_CONFIGS))}")
+        raise ValueError(
+            f"Unknown rustvello backend {backend!r}. Available: {', '.join(sorted(_BACKEND_CONFIGS))}"
+        )
 
     # Pre-flight: ensure the native extension is importable
     _check_backend_available(backend)
@@ -225,7 +227,9 @@ def _rustvello_postgres_method(
     """Configure all backends to use the PostgreSQL Rust implementation."""
     if postgres_url:
         kwargs["postgres_url"] = postgres_url
-    return _rustvello_builder_method(builder, backend="postgres", native=native, **kwargs)
+    return _rustvello_builder_method(
+        builder, backend="postgres", native=native, **kwargs
+    )
 
 
 def _rustvello_mongo_method(
@@ -303,11 +307,15 @@ def _rustvello_redis_orchestrator_method(
     return _set_component(builder, "orchestrator_cls", cls, **kwargs)
 
 
-def _rustvello_redis_state_method(builder: PynencBuilder, redis_url: str | None = None, **kwargs: Any) -> PynencBuilder:
+def _rustvello_redis_state_method(
+    builder: PynencBuilder, redis_url: str | None = None, **kwargs: Any
+) -> PynencBuilder:
     """Set only the state backend to Redis via rustvello."""
     if redis_url:
         kwargs["redis_url"] = redis_url
-    return _set_component(builder, "state_backend_cls", "RustRedisStateBackend", **kwargs)
+    return _set_component(
+        builder, "state_backend_cls", "RustRedisStateBackend", **kwargs
+    )
 
 
 def _rustvello_redis_trigger_method(
@@ -319,11 +327,15 @@ def _rustvello_redis_trigger_method(
     return _set_component(builder, "trigger_cls", "RustRedisTrigger", **kwargs)
 
 
-def _rustvello_redis_cds_method(builder: PynencBuilder, redis_url: str | None = None, **kwargs: Any) -> PynencBuilder:
+def _rustvello_redis_cds_method(
+    builder: PynencBuilder, redis_url: str | None = None, **kwargs: Any
+) -> PynencBuilder:
     """Set only the client data store to Redis via rustvello."""
     if redis_url:
         kwargs["redis_url"] = redis_url
-    return _set_component(builder, "client_data_store_cls", "RustRedisClientDataStore", **kwargs)
+    return _set_component(
+        builder, "client_data_store_cls", "RustRedisClientDataStore", **kwargs
+    )
 
 
 def _rustvello_postgres_state_method(
@@ -332,7 +344,9 @@ def _rustvello_postgres_state_method(
     """Set only the state backend to PostgreSQL via rustvello."""
     if postgres_url:
         kwargs["postgres_url"] = postgres_url
-    return _set_component(builder, "state_backend_cls", "RustPostgresStateBackend", **kwargs)
+    return _set_component(
+        builder, "state_backend_cls", "RustPostgresStateBackend", **kwargs
+    )
 
 
 def _rustvello_postgres_orchestrator_method(
@@ -362,17 +376,35 @@ class RustvelloBuilderPlugin:
         builder_cls.register_plugin_method("rustvello_mem", _rustvello_mem_method)
         builder_cls.register_plugin_method("rustvello_sqlite", _rustvello_sqlite_method)
         builder_cls.register_plugin_method("rustvello_redis", _rustvello_redis_method)
-        builder_cls.register_plugin_method("rustvello_postgres", _rustvello_postgres_method)
+        builder_cls.register_plugin_method(
+            "rustvello_postgres", _rustvello_postgres_method
+        )
         builder_cls.register_plugin_method("rustvello_mongo", _rustvello_mongo_method)
         builder_cls.register_plugin_method("rustvello_mongo3", _rustvello_mongo3_method)
 
         # Per-component methods for mixing backends.
         # Example: .rustvello_redis().rustvello_rabbitmq_broker(url=...)
-        builder_cls.register_plugin_method("rustvello_rabbitmq_broker", _rustvello_rabbitmq_broker_method)
-        builder_cls.register_plugin_method("rustvello_redis_broker", _rustvello_redis_broker_method)
-        builder_cls.register_plugin_method("rustvello_redis_orchestrator", _rustvello_redis_orchestrator_method)
-        builder_cls.register_plugin_method("rustvello_redis_state", _rustvello_redis_state_method)
-        builder_cls.register_plugin_method("rustvello_redis_trigger", _rustvello_redis_trigger_method)
-        builder_cls.register_plugin_method("rustvello_redis_cds", _rustvello_redis_cds_method)
-        builder_cls.register_plugin_method("rustvello_postgres_state", _rustvello_postgres_state_method)
-        builder_cls.register_plugin_method("rustvello_postgres_orchestrator", _rustvello_postgres_orchestrator_method)
+        builder_cls.register_plugin_method(
+            "rustvello_rabbitmq_broker", _rustvello_rabbitmq_broker_method
+        )
+        builder_cls.register_plugin_method(
+            "rustvello_redis_broker", _rustvello_redis_broker_method
+        )
+        builder_cls.register_plugin_method(
+            "rustvello_redis_orchestrator", _rustvello_redis_orchestrator_method
+        )
+        builder_cls.register_plugin_method(
+            "rustvello_redis_state", _rustvello_redis_state_method
+        )
+        builder_cls.register_plugin_method(
+            "rustvello_redis_trigger", _rustvello_redis_trigger_method
+        )
+        builder_cls.register_plugin_method(
+            "rustvello_redis_cds", _rustvello_redis_cds_method
+        )
+        builder_cls.register_plugin_method(
+            "rustvello_postgres_state", _rustvello_postgres_state_method
+        )
+        builder_cls.register_plugin_method(
+            "rustvello_postgres_orchestrator", _rustvello_postgres_orchestrator_method
+        )

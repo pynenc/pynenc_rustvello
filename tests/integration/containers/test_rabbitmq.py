@@ -37,7 +37,9 @@ class TestRabbitmqConnectionLifecycle:
         rabbitmq_app.broker.route_invocation(inv.invocation_id)
         assert rabbitmq_app.broker.count_invocations() >= 1
 
-    def test_multiple_apps_same_container(self, rabbitmq_url: str, rabbitmq_sqlite_db_path: str) -> None:
+    def test_multiple_apps_same_container(
+        self, rabbitmq_url: str, rabbitmq_sqlite_db_path: str
+    ) -> None:
         """Two independent apps against the same RabbitMQ instance."""
         import os
         import tempfile
@@ -47,7 +49,9 @@ class TestRabbitmqConnectionLifecycle:
         try:
             app1 = (
                 PynencBuilder()
-                .rustvello_sqlite(sqlite_db_path=rabbitmq_sqlite_db_path, app_id="rmq_iso_1")
+                .rustvello_sqlite(
+                    sqlite_db_path=rabbitmq_sqlite_db_path, app_id="rmq_iso_1"
+                )
                 .rustvello_rabbitmq_broker(rabbitmq_url=rabbitmq_url)
                 .build()
             )

@@ -64,7 +64,9 @@ def _workflow_to_rust_json(wf: WorkflowIdentity) -> str:
                 "module": str(wf.workflow_type.module),
                 "name": str(wf.workflow_type.func_name),
             },
-            "parent_id": str(wf.parent_workflow_id) if getattr(wf, "parent_workflow_id", None) else None,
+            "parent_id": str(wf.parent_workflow_id)
+            if getattr(wf, "parent_workflow_id", None)
+            else None,
             "depth": 0,
         }
     )
@@ -104,9 +106,19 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
         for inv_dto, call_dto in entries:
             inv_id = str(inv_dto.invocation_id)
             task_id = inv_dto.call_id.task_id
-            args = dict(call_dto.serialized_arguments) if hasattr(call_dto, "serialized_arguments") else {}
-            parent_id = str(inv_dto.parent_invocation_id) if inv_dto.parent_invocation_id else None
-            workflow_json = _workflow_to_rust_json(inv_dto.workflow) if inv_dto.workflow else None
+            args = (
+                dict(call_dto.serialized_arguments)
+                if hasattr(call_dto, "serialized_arguments")
+                else {}
+            )
+            parent_id = (
+                str(inv_dto.parent_invocation_id)
+                if inv_dto.parent_invocation_id
+                else None
+            )
+            workflow_json = (
+                _workflow_to_rust_json(inv_dto.workflow) if inv_dto.workflow else None
+            )
             self._rust.upsert_invocation(
                 inv_id,
                 str(task_id.module),
@@ -116,7 +128,9 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
                 workflow_json,
             )
 
-    def _get_invocation(self, invocation_id: InvocationId) -> tuple[InvocationDTO, CallDTO] | None:
+    def _get_invocation(
+        self, invocation_id: InvocationId
+    ) -> tuple[InvocationDTO, CallDTO] | None:
         try:
             inv_json_str = self._rust.get_invocation(str(invocation_id))
         except Exception as e:
@@ -177,7 +191,9 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
         call_dto = CallDTO(call_id=call_id, serialized_arguments=args)
         return (inv_dto, call_dto)
 
-    def get_child_invocations(self, parent_invocation_id: InvocationId) -> Iterator[InvocationId]:
+    def get_child_invocations(
+        self, parent_invocation_id: InvocationId
+    ) -> Iterator[InvocationId]:
         from pynenc.identifiers.invocation_id import InvocationId
 
         for child_id in self._rust.get_child_invocations(str(parent_invocation_id)):
@@ -191,7 +207,9 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
         invocation_history: InvocationHistory,
     ) -> None:
         sr_timestamp_us = _datetime_to_us(invocation_history.status_record.timestamp)
-        history_timestamp_us = _datetime_to_us(getattr(invocation_history, "_timestamp", None))
+        history_timestamp_us = _datetime_to_us(
+            getattr(invocation_history, "_timestamp", None)
+        )
 
         sr_runner_id = invocation_history.status_record.runner_id or None
         ctx_runner_id = invocation_history.runner_context_id or None
@@ -265,8 +283,12 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
 
     # --- Exceptions ---
 
-    def _set_exception(self, invocation_id: InvocationId, serialized_exception: str) -> None:
-        self._rust.store_error(str(invocation_id), "SerializedException", serialized_exception, None)
+    def _set_exception(
+        self, invocation_id: InvocationId, serialized_exception: str
+    ) -> None:
+        self._rust.store_error(
+            str(invocation_id), "SerializedException", serialized_exception, None
+        )
 
     def _get_exception(self, invocation_id: InvocationId) -> str:
         error_json = self._rust.get_error_json(str(invocation_id))
@@ -288,17 +310,25 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
 
         error_type = error.get("error_type", "Exception")
         cls = getattr(builtins, error_type, None)
-        if cls is None or not (isinstance(cls, type) and issubclass(cls, BaseException)):
+        if cls is None or not (
+            isinstance(cls, type) and issubclass(cls, BaseException)
+        ):
             cls = Exception
         return self.serialize_exception(cls(message))
 
     # --- Workflow data ---
 
-    def set_workflow_data(self, workflow_identity: WorkflowIdentity, key: str, value: Any) -> None:
+    def set_workflow_data(
+        self, workflow_identity: WorkflowIdentity, key: str, value: Any
+    ) -> None:
         serialized = self.app.client_data_store.serialize(value)
-        self._rust.set_workflow_data(str(workflow_identity.workflow_id), key, serialized)
+        self._rust.set_workflow_data(
+            str(workflow_identity.workflow_id), key, serialized
+        )
 
-    def get_workflow_data(self, workflow_identity: WorkflowIdentity, key: str, default: Any = None) -> Any:
+    def get_workflow_data(
+        self, workflow_identity: WorkflowIdentity, key: str, default: Any = None
+    ) -> Any:
         result = self._rust.get_workflow_data(str(workflow_identity.workflow_id), key)
         if result is None:
             return default
@@ -321,7 +351,10 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
         return AppInfo.from_json(result)
 
     def discover_app_infos(self) -> dict[str, AppInfo]:
-        return {app_id: AppInfo.from_json(info_json) for app_id, info_json in self._rust.get_all_app_infos()}
+        return {
+            app_id: AppInfo.from_json(info_json)
+            for app_id, info_json in self._rust.get_all_app_infos()
+        }
 
     # --- Workflow runs ---
 
@@ -339,13 +372,21 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
             yield _workflow_from_rust(json.loads(wf_json))
 
     def get_workflow_runs(self, workflow_type: TaskId) -> Iterator[WorkflowIdentity]:
-        for wf_json in self._rust.get_workflow_runs(str(workflow_type.module), str(workflow_type.func_name)):
+        for wf_json in self._rust.get_workflow_runs(
+            str(workflow_type.module), str(workflow_type.func_name)
+        ):
             yield _workflow_from_rust(json.loads(wf_json))
 
-    def store_workflow_sub_invocation(self, parent_workflow_id: InvocationId, sub_invocation_id: InvocationId) -> None:
-        self._rust.store_workflow_sub_invocation(str(parent_workflow_id), str(sub_invocation_id))
+    def store_workflow_sub_invocation(
+        self, parent_workflow_id: InvocationId, sub_invocation_id: InvocationId
+    ) -> None:
+        self._rust.store_workflow_sub_invocation(
+            str(parent_workflow_id), str(sub_invocation_id)
+        )
 
-    def get_workflow_sub_invocations(self, workflow_id: InvocationId) -> Iterator[InvocationId]:
+    def get_workflow_sub_invocations(
+        self, workflow_id: InvocationId
+    ) -> Iterator[InvocationId]:
         from pynenc.identifiers.invocation_id import InvocationId
 
         for sub_id in self._rust.get_workflow_sub_invocations(str(workflow_id)):
@@ -361,7 +402,9 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
     ) -> Iterator[list[InvocationId]]:
         from pynenc.identifiers.invocation_id import InvocationId
 
-        history_json = self._rust.get_history_in_timerange(start_time.timestamp(), end_time.timestamp(), 10000, 0)
+        history_json = self._rust.get_history_in_timerange(
+            start_time.timestamp(), end_time.timestamp(), 10000, 0
+        )
         history_list = json.loads(history_json)
         seen: set[str] = set()
         matching: list[InvocationId] = []
@@ -381,7 +424,9 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
     ) -> Iterator[list[InvocationHistory]]:
         from pynenc.invocation.status import InvocationStatus, InvocationStatusRecord
 
-        history_json = self._rust.get_history_in_timerange(start_time.timestamp(), end_time.timestamp(), 10000, 0)
+        history_json = self._rust.get_history_in_timerange(
+            start_time.timestamp(), end_time.timestamp(), 10000, 0
+        )
         history_list = json.loads(history_json)
         matching: list[InvocationHistory] = []
         for h in history_list:
@@ -426,8 +471,12 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
     # --- Runner contexts ---
 
     def _store_runner_context(self, runner_context: RunnerContext) -> None:
-        parent_id = runner_context.parent_ctx.runner_id if runner_context.parent_ctx else None
-        parent_cls = runner_context.parent_ctx.runner_cls if runner_context.parent_ctx else None
+        parent_id = (
+            runner_context.parent_ctx.runner_id if runner_context.parent_ctx else None
+        )
+        parent_cls = (
+            runner_context.parent_ctx.runner_cls if runner_context.parent_ctx else None
+        )
         self._rust.store_runner_context(
             runner_context.runner_id,
             runner_context.runner_cls,
@@ -465,7 +514,9 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
             from pynenc.identifiers.task_id import TaskId
 
             tid = TaskId.from_key(workflow_type_key)
-            for wf_json in self._rust.get_workflow_runs(str(tid.module), str(tid.func_name)):
+            for wf_json in self._rust.get_workflow_runs(
+                str(tid.module), str(tid.func_name)
+            ):
                 wf = json.loads(wf_json)
                 for inv_id in self._rust.get_workflow_invocations(wf["workflow_id"]):
                     yield InvocationId(inv_id)
@@ -486,7 +537,11 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
         )
 
     def _get_runner_contexts(self, runner_ids: list[str]) -> list[RunnerContext]:
-        return [ctx for rid in runner_ids if (ctx := self._get_runner_context(rid)) is not None]
+        return [
+            ctx
+            for rid in runner_ids
+            if (ctx := self._get_runner_context(rid)) is not None
+        ]
 
 
 # ---------------------------------------------------------------------------

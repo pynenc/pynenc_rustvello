@@ -29,7 +29,9 @@ import rustvello as _rv
 _MIN_RUSTVELLO = (0, 1, 0)
 _ver = tuple(int(x) for x in _rv.__version__.split(".")[:3])
 if _ver < _MIN_RUSTVELLO:
-    raise ImportError(f"pynenc requires rustvello >= {'.'.join(str(v) for v in _MIN_RUSTVELLO)}, got {_rv.__version__}")
+    raise ImportError(
+        f"pynenc requires rustvello >= {'.'.join(str(v) for v in _MIN_RUSTVELLO)}, got {_rv.__version__}"
+    )
 del _rv, _ver, _MIN_RUSTVELLO
 
 from pynenc_rustvello.broker import (
