@@ -1,6 +1,6 @@
 [project]
 name = "pynenc-rustvello"
-version = "0.1.1"
+version = "0.1.2"
 description = "Rust-powered backend plugin for pynenc (via rustvello)."
 authors = [{ name = "Luis Diaz", email = "code.luis.diaz@proton.me" }]
 license = { text = "MIT License" }
