@@ -74,6 +74,8 @@ myst_enable_checkboxes = True
 # -- Options for HTML output -------------------------------------------------
 html_theme = "furo"
 html_title = "pynenc-rustvello"
+html_logo = "_static/logo.png"
+html_favicon = "_static/favicon.ico"
 language = "en"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]

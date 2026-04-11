@@ -160,20 +160,20 @@ wheels = [
 
 [[package]]
 name = "cistell"
-version = "0.1.0rc24.dev9"
-source = { registry = "https://test.pypi.org/simple/" }
-sdist = { url = "https://test-files.pythonhosted.org/packages/26/23/26f6375ff08df799b88dcf372ac138969e81908832aecbb20edeadeff865/cistell-0.1.0rc24.dev9.tar.gz", hash = "sha256:8b0adff23eeb0b5631aa2447d1754872f636d8fa2bc2835ebd92c206ce80891c", size = 53317, upload-time = "2026-03-30T00:05:49.561Z" }
+version = "0.1.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/15/f7/5f61e097b8e42e560165a16780927905013d6c647032764c7f985d8e8102/cistell-0.1.2.tar.gz", hash = "sha256:5c52a043dfae476cc26611d86fbac87320ecd0efa13882c17a7b4842f57a7f42", size = 64221, upload-time = "2026-04-08T21:25:10.77Z" }
 wheels = [
-    { url = "https://test-files.pythonhosted.org/packages/85/75/a63fb7d0890cbe68a68c74123038138a5dd66c1e3f38b2f5a3563460dc60/cistell-0.1.0rc24.dev9-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:fe468e0d14b314c1b455e89d6422ae7dd47192ef9e69bec4803ab4055289840d", size = 539363, upload-time = "2026-03-30T00:05:38.054Z" },
-    { url = "https://test-files.pythonhosted.org/packages/2f/c5/fda721da684c5f9865805ce902d0ce00ab7a935da367fd96353f9967f12c/cistell-0.1.0rc24.dev9-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:351ebb60fd173cfc3d6d76e69914db1bcc603a584ededa5f4ecf8f34c6ad55ff", size = 523984, upload-time = "2026-03-30T00:05:39.435Z" },
-    { url = "https://test-files.pythonhosted.org/packages/c8/55/2d195d57454d2bf634c3a05e3bea35adf123c78cd60ff3c4fec9e39bc877/cistell-0.1.0rc24.dev9-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:263625276d36250db6006ae6adc5df39c63cfcdc91ca49022e4504953b239450", size = 577679, upload-time = "2026-03-30T00:05:40.353Z" },
-    { url = "https://test-files.pythonhosted.org/packages/31/34/7a4ce54c18ca3ea5f096a5dfb3837c931c3494bb0c31818a9fa7d41287e7/cistell-0.1.0rc24.dev9-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:bbdc74575fe5319bb6a70a00bda845919e1b13b23ff9fbbf0991d30b66ad2692", size = 603723, upload-time = "2026-03-30T00:05:41.382Z" },
-    { url = "https://test-files.pythonhosted.org/packages/ee/b8/a434aa7129a733c43f17af54b9ffa0e4c5bd24f133a6f0823f13a5d5a53c/cistell-0.1.0rc24.dev9-cp312-cp312-win_amd64.whl", hash = "sha256:f29d99f13df950b72593ef23a29ba3a9ffb062c4e14a4cb63aea5f20e3d5746b", size = 424151, upload-time = "2026-03-30T00:05:42.321Z" },
-    { url = "https://test-files.pythonhosted.org/packages/b8/6b/d03e4f59eed1ffb6f9f5438b119871005988e7f9458fcbb8d7398866de92/cistell-0.1.0rc24.dev9-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:e08d3bebfb15958026e5cc310e4a1635bf3d1e6efc0efc00c834568b25615743", size = 538399, upload-time = "2026-03-30T00:05:43.68Z" },
-    { url = "https://test-files.pythonhosted.org/packages/9d/a4/b0c3fa708863d52efa6750f56f44d433969aa88f763f00a61b8b059ff408/cistell-0.1.0rc24.dev9-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:9955a5263e8fb68c4eb96d148a982612670dc15a2e5edefb4aa551a810ef8872", size = 523468, upload-time = "2026-03-30T00:05:44.929Z" },
-    { url = "https://test-files.pythonhosted.org/packages/48/c4/d305d9917efb61afc36249a78a2d7fa251c3c7174ff1dcdd4ae63ac3f95b/cistell-0.1.0rc24.dev9-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:694545fbc19024bb6abd6433c7a48e26fd3d83bf5f7713d50197fcea9ac0fd56", size = 577508, upload-time = "2026-03-30T00:05:46.103Z" },
-    { url = "https://test-files.pythonhosted.org/packages/25/68/cb24804aea3ed8911ecee8304a4023a2c19a33a76de415406714263e8465/cistell-0.1.0rc24.dev9-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9bd9eb8ebb3619ef5a0818af0bddd73d968177aecfbb2c745396106137606ee2", size = 603469, upload-time = "2026-03-30T00:05:47.031Z" },
-    { url = "https://test-files.pythonhosted.org/packages/88/f0/ff01c022db76a2ef2e7783272531a7e2c590d0194d6e2f48599f0f54d492/cistell-0.1.0rc24.dev9-cp313-cp313-win_amd64.whl", hash = "sha256:8876353e785e6e4581155b9bf993655d64a648959de14c468f9f332455c28a1e", size = 423869, upload-time = "2026-03-30T00:05:48.026Z" },
+    { url = "https://files.pythonhosted.org/packages/99/be/c4721f34183d8dd9013dbfcd8f0f835fc1fd4ca8a58d78746dfb7efed67f/cistell-0.1.2-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:413cea81e9e71d6e1e898c3e57c7cf1bd91d65bb7f312a8177d38111b485823f", size = 503501, upload-time = "2026-04-08T21:24:59.085Z" },
+    { url = "https://files.pythonhosted.org/packages/20/04/1428e16aa927e9418dc6ee1f32f2e946aa8aa98d0fd7069ab97d4923e282/cistell-0.1.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:83ce9fe60483662850b5e15dec13c185685d1a371adc6bf63ac292492948420d", size = 488537, upload-time = "2026-04-08T21:25:00.159Z" },
+    { url = "https://files.pythonhosted.org/packages/4b/9e/d3a15168268d24a1e4cbb93ccd4bdf033d724a20f92e1465733fed1f6adf/cistell-0.1.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1c2f20b72aa35adad68656119131871508dfabaf3b33a21f95c0331f6eec3ea6", size = 533276, upload-time = "2026-04-08T21:25:01.228Z" },
+    { url = "https://files.pythonhosted.org/packages/d3/2a/98363c20c5194c70641ba23010d643f4899f198372a39d2db544a853c80f/cistell-0.1.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:20d5ccb244326cc6d0d9cb14c5a000d4e5e9b73769e2613b21240e36f03e8531", size = 554857, upload-time = "2026-04-08T21:25:02.541Z" },
+    { url = "https://files.pythonhosted.org/packages/43/90/408fded608241343853516a3f8dd54c1df7f75f3efabdb731d19f008e9f8/cistell-0.1.2-cp312-cp312-win_amd64.whl", hash = "sha256:92369593799c5854aad5887dcbe77ca2f3091a752058dd079e64e44c589c6e4a", size = 380718, upload-time = "2026-04-08T21:25:03.88Z" },
+    { url = "https://files.pythonhosted.org/packages/7a/71/f457c23cb36418a0ed4973c1e41967f7f113c0bdefc16d40a30bf32de0ea/cistell-0.1.2-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:3f6ae14eb63fd3460110a758371349f6e8f3b3218e8e061be00f21fb9e2e7809", size = 502973, upload-time = "2026-04-08T21:25:04.873Z" },
+    { url = "https://files.pythonhosted.org/packages/39/1a/a505281e86b491c2eeb82edcdc8a22e1452bf851a598fa631adac6ae1cf7/cistell-0.1.2-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:a134393c288d809a9a88ca2ca389891f3ef70ca1d5197ac80ea043ee6b946c60", size = 487870, upload-time = "2026-04-08T21:25:05.927Z" },
+    { url = "https://files.pythonhosted.org/packages/95/63/70fe87e14eaa05918a817bbae58c0013725501522eb15fe0adb3f683d9d8/cistell-0.1.2-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:7fe79b0f8ebab6cf11a801cb71cf5e8fcabfaf9ffefefc0f9e48c5fe567095c4", size = 532664, upload-time = "2026-04-08T21:25:06.979Z" },
+    { url = "https://files.pythonhosted.org/packages/bc/77/1b9b90aa0bf9be051c4e5c3fa466c2581c51ec1b32facfb53b3d5e060290/cistell-0.1.2-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e956ec8b5429555e92f2026f8e8d593c0130050aee2492e5fd917359589b75e8", size = 554495, upload-time = "2026-04-08T21:25:07.957Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/9d/f3881d2606339ca1f8340444d5e8dc87b7b53bd2b120a8af4eca91895959/cistell-0.1.2-cp313-cp313-win_amd64.whl", hash = "sha256:c3f2a2964cab33e66f2810dd8bdd21d4e71e737e1fdd20a66c7e357d3358d322", size = 380254, upload-time = "2026-04-08T21:25:09.368Z" },
 ]
 
 [[package]]
@@ -320,6 +320,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/ae/ed/aefcc8cd0ba62a0560c3c18c33925362d46c6075480bfa4df87b28e169a9/docutils-0.21.2.tar.gz", hash = "sha256:3a6b18732edf182daa3cd12775bbb338cf5691468f91eeeb109deff6ebfa986f", size = 2204444, upload-time = "2024-04-23T18:57:18.24Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8f/d7/9322c609343d929e75e7e5e6255e614fcc67572cfd083959cdef3b7aad79/docutils-0.21.2-py3-none-any.whl", hash = "sha256:dafca5b9e384f0e419294eb4d2ff9fa826435bf15f15b7bd45723e8ad76811b2", size = 587408, upload-time = "2024-04-23T18:57:14.835Z" },
+]
+
+[[package]]
+name = "execnet"
+version = "2.1.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/bf/89/780e11f9588d9e7128a3f87788354c7946a9cbb1401ad38a48c4db9a4f07/execnet-2.1.2.tar.gz", hash = "sha256:63d83bfdd9a23e35b9c6a3261412324f964c2ec8dcd8d3c6916ee9373e0befcd", size = 166622, upload-time = "2025-11-12T09:56:37.75Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ab/84/02fc1827e8cdded4aa65baef11296a9bbe595c474f0d6d758af082d849fd/execnet-2.1.2-py3-none-any.whl", hash = "sha256:67fba928dd5a544b783f6056f449e5e3931a5c378b128bc18501f7ea79e296ec", size = 40708, upload-time = "2025-11-12T09:56:36.333Z" },
 ]
 
 [[package]]
@@ -816,14 +825,18 @@ wheels = [
 
 [[package]]
 name = "pynenc"
-version = "0.1.1"
-source = { editable = "../pynenc_repo" }
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cistell" },
     { name = "croniter" },
     { name = "jsonpickle" },
     { name = "pyyaml" },
     { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/96/c2/4472a704a480feb7c80f86d70aecb36c7e0e87b818c26dba2c9b8606b92c/pynenc-0.2.0.tar.gz", hash = "sha256:75215b5a6d4b24876b51f36d160f2b38c38348d93355f59b448bc7ffc695efd2", size = 3468447, upload-time = "2026-04-11T21:07:32.316Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/74/b3/bd4e6012f809762f7c569fe5e92e9f43f572eef42034630f18b8a459c3d7/pynenc-0.2.0-py3-none-any.whl", hash = "sha256:7255cbfcfd8d26895de0d360ed45be9503537ca6b8cd5be9c8dfc1529cbd8de7", size = 976619, upload-time = "2026-04-11T21:07:30.628Z" },
 ]
 
 [package.optional-dependencies]
@@ -835,52 +848,17 @@ tests = [
     { name = "psutil" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
     { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
     { name = "requests" },
     { name = "types-pyyaml" },
     { name = "types-requests" },
 ]
 
-[package.metadata]
-requires-dist = [
-    { name = "cistell", specifier = "==0.1.0rc24.dev9", index = "https://test.pypi.org/simple/" },
-    { name = "coverage", extras = ["toml"], marker = "extra == 'tests'", specifier = ">=7.2.6" },
-    { name = "croniter", specifier = ">=6.0.0" },
-    { name = "fastapi", marker = "extra == 'monitor'", specifier = ">=0.115.0" },
-    { name = "httpx", marker = "extra == 'tests'", specifier = ">=0.27.0" },
-    { name = "jinja2", marker = "extra == 'monitor'", specifier = ">=3.1.0" },
-    { name = "jsonpickle", specifier = ">=4.1.0" },
-    { name = "mypy", marker = "extra == 'tests'", specifier = ">=1.7.0" },
-    { name = "pre-commit", marker = "extra == 'tests'", specifier = ">=3.5.0" },
-    { name = "psutil", marker = "extra == 'tests'", specifier = ">=7.0.0" },
-    { name = "pytest", marker = "extra == 'tests'", specifier = ">=7.4.4" },
-    { name = "pytest-asyncio", marker = "extra == 'tests'", specifier = ">=0.18.3" },
-    { name = "pytest-timeout", marker = "extra == 'tests'", specifier = ">=2.2.0" },
-    { name = "python-multipart", marker = "extra == 'monitor'", specifier = ">=0.0.6" },
-    { name = "pyyaml", specifier = ">=6.0.1" },
-    { name = "requests", marker = "extra == 'tests'", specifier = ">=2.31.0" },
-    { name = "types-pyyaml", marker = "extra == 'tests'", specifier = ">=6.0.0" },
-    { name = "types-requests", marker = "extra == 'tests'", specifier = ">=2.32.0" },
-    { name = "typing-extensions", specifier = ">=4.9.0" },
-    { name = "uvicorn", marker = "extra == 'monitor'", specifier = ">=0.34.0" },
-]
-provides-extras = ["monitor", "tests"]
-
-[package.metadata.requires-dev]
-dev = [{ name = "black", specifier = "==23.11.0" }]
-docs = [
-    { name = "furo", specifier = ">=2024" },
-    { name = "myst-parser", specifier = ">=4.0" },
-    { name = "sphinx", specifier = ">=8.0,<9" },
-    { name = "sphinx-autodoc2", specifier = ">=0.5.0" },
-    { name = "sphinx-copybutton", specifier = ">=0.5.2" },
-    { name = "sphinx-design", specifier = ">=0.6.0" },
-    { name = "sphinx-inline-tabs", specifier = ">=2023.4.21" },
-]
-
 [[package]]
 name = "pynenc-rustvello"
-version = "0.1.1"
+version = "0.1.3"
 source = { editable = "." }
 dependencies = [
     { name = "pynenc" },
@@ -916,8 +894,8 @@ tests = [
 
 [package.metadata]
 requires-dist = [
-    { name = "pynenc", editable = "../pynenc_repo" },
-    { name = "rustvello", editable = "../py-rustvello" },
+    { name = "pynenc", specifier = ">=0.2.0" },
+    { name = "rustvello", specifier = ">=0.1.6" },
 ]
 
 [package.metadata.requires-dev]
@@ -942,7 +920,7 @@ docs = [
 tests = [
     { name = "psutil", specifier = ">=7.0.0" },
     { name = "pymongo", specifier = ">=4.6.0" },
-    { name = "pynenc", extras = ["tests"], editable = "../pynenc_repo" },
+    { name = "pynenc", extras = ["tests"], specifier = ">=0.2.0" },
     { name = "pytest-timeout", specifier = ">=2.2.0" },
     { name = "testcontainers", extras = ["postgres", "redis", "rabbitmq", "mongodb"], specifier = ">=4.13.0" },
 ]
@@ -977,6 +955,20 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-cov"
+version = "7.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "coverage" },
+    { name = "pluggy" },
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b1/51/a849f96e117386044471c8ec2bd6cfebacda285da9525c9106aeb28da671/pytest_cov-7.1.0.tar.gz", hash = "sha256:30674f2b5f6351aa09702a9c8c364f6a01c27aae0c1366ae8016160d1efc56b2", size = 55592, upload-time = "2026-03-21T20:11:16.284Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9d/7a/d968e294073affff457b041c2be9868a40c1c71f4a35fcc1e45e5493067b/pytest_cov-7.1.0-py3-none-any.whl", hash = "sha256:a0461110b7865f9a271aa1b51e516c9a95de9d696734a2f71e3e78f46e1d4678", size = 22876, upload-time = "2026-03-21T20:11:14.438Z" },
+]
+
+[[package]]
 name = "pytest-timeout"
 version = "2.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -986,6 +978,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/ac/82/4c9ecabab13363e72d880f2fb504c5f750433b2b6f16e99f4ec21ada284c/pytest_timeout-2.4.0.tar.gz", hash = "sha256:7e68e90b01f9eff71332b25001f85c75495fc4e3a836701876183c4bcfd0540a", size = 17973, upload-time = "2025-05-05T19:44:34.99Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fa/b6/3127540ecdf1464a00e5a01ee60a1b09175f6913f0644ac748494d9c4b21/pytest_timeout-2.4.0-py3-none-any.whl", hash = "sha256:c42667e5cdadb151aeb5b26d114aff6bdf5a907f176a007a30b940d3d865b5c2", size = 14382, upload-time = "2025-05-05T19:44:33.502Z" },
+]
+
+[[package]]
+name = "pytest-xdist"
+version = "3.8.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "execnet" },
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/78/b4/439b179d1ff526791eb921115fca8e44e596a13efeda518b9d845a619450/pytest_xdist-3.8.0.tar.gz", hash = "sha256:7e578125ec9bc6050861aa93f2d59f1d8d085595d6551c2c90b6f4fad8d3a9f1", size = 88069, upload-time = "2025-07-01T13:30:59.346Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ca/31/d4e37e9e550c2b92a9cbc2e4d0b7420a27224968580b5a447f420847c975/pytest_xdist-3.8.0-py3-none-any.whl", hash = "sha256:202ca578cfeb7370784a8c33d6d05bc6e13b4f25b5053c30a152269fd10f0b88", size = 46396, upload-time = "2025-07-01T13:30:56.632Z" },
 ]
 
 [[package]]
@@ -1156,17 +1161,20 @@ wheels = [
 
 [[package]]
 name = "rustvello"
-source = { editable = "../py-rustvello" }
-
-[package.metadata]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "coverage", extras = ["toml"], specifier = ">=7.2.6,<8.0" },
-    { name = "mypy", specifier = ">=1.7.0" },
-    { name = "pre-commit", specifier = ">=3.5.0" },
-    { name = "pytest", specifier = ">=8.0" },
-    { name = "ruff", specifier = ">=0.14.0" },
+version = "0.1.6"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/3d/bb/f44d08401e924779eff788357ab43e1b5a02404526f81bd07debe2d4f24a/rustvello-0.1.6.tar.gz", hash = "sha256:8a0372e9a74dc6b4164851307caaf8ba643f30eed7f04a8e410342632975d580", size = 384215, upload-time = "2026-04-09T21:32:45.938Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/be/06/0bce8ac36a504dd13f1876cfbef2c67ac11d36486b1addb1593aa7205fbb/rustvello-0.1.6-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:a1f0c0182d8332d35541d388ca8fa81aa63cd6e34520d65a2407e1c7cb5e8a11", size = 16065234, upload-time = "2026-04-09T21:32:19.549Z" },
+    { url = "https://files.pythonhosted.org/packages/03/7f/81ad1b663e3d5534ad9bd664cbc3b7db50fbe6fcd0f450612ab64d7eb561/rustvello-0.1.6-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:1ec47041d4763946736997315fd6099860d8da4a19433a5b8a641185578e7ae1", size = 15275709, upload-time = "2026-04-09T21:32:21.994Z" },
+    { url = "https://files.pythonhosted.org/packages/0a/6e/3fa30e777fe3cccaee88d62a7a7ef1a6aeb3fab8c62413a12d482799524b/rustvello-0.1.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:66e57598ac832434aee93ece055da93f66fe22ae5932f748dd9df9c399748b12", size = 46888855, upload-time = "2026-04-09T21:32:24.748Z" },
+    { url = "https://files.pythonhosted.org/packages/7e/74/24afa30e151b79ae3efc00be5a23e73f69af2ca48370c1943e93a4204540/rustvello-0.1.6-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:d057d250e840620caf43ace8d4f98e63a4febe372c694ee6f28fe1643c7dd2b1", size = 45581520, upload-time = "2026-04-09T21:32:27.661Z" },
+    { url = "https://files.pythonhosted.org/packages/e2/5d/4cd3592b1b268881f9bee8774a68b72d5b11e0cd8b4abad9d8e7c2af7848/rustvello-0.1.6-cp312-cp312-win_amd64.whl", hash = "sha256:87088fb24b1d2880cfbdca1eb8396c67c5f53354885629115e941a6643037c0b", size = 15367771, upload-time = "2026-04-09T21:32:30.374Z" },
+    { url = "https://files.pythonhosted.org/packages/67/a3/001fc748168727dc9f1c9fbcd22d55a9c16e2c787bfd38904a50a85928f9/rustvello-0.1.6-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:e14528156f5bf380599607c46ec36a72173f04dfeb67f8a58df763e7d0287341", size = 16063876, upload-time = "2026-04-09T21:32:32.681Z" },
+    { url = "https://files.pythonhosted.org/packages/8c/3c/7937dce407eba8cbcde2adced6e884741d4205a33c6cb27c9112f8c208d2/rustvello-0.1.6-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:ad9bf0cd6926e2db9d2f88670ee322eb6d65ba5af1e6feb60a7593b57fe12afa", size = 15274396, upload-time = "2026-04-09T21:32:35.017Z" },
+    { url = "https://files.pythonhosted.org/packages/85/8b/2d4898aa2ed2605e8a5cbc04ea536250dd3d05c560502d99f9ddb4367e98/rustvello-0.1.6-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:18c7a7f59103b79afe3050186259368391f2118033710876f591dd4e9b5cd06e", size = 46885015, upload-time = "2026-04-09T21:32:37.983Z" },
+    { url = "https://files.pythonhosted.org/packages/d6/e6/11d39d9122fc27ddd8f844702721743bf56a5a25d9d8318f434b12b49186/rustvello-0.1.6-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:5669f62599e8a527f4e2b1df85dc9f63879d09589c47ff102a52ad0aed6ff7fe", size = 45577853, upload-time = "2026-04-09T21:32:41.686Z" },
+    { url = "https://files.pythonhosted.org/packages/bc/f1/75181677cc068b34796b0ecd3f2b5570fd1d53f4627c57b30705023eaaab/rustvello-0.1.6-cp313-cp313-win_amd64.whl", hash = "sha256:b393448624544875157a989a8abd3b063903b2f5d07b79558455971a425a0fd3", size = 15367052, upload-time = "2026-04-09T21:32:44.279Z" },
 ]
 
 [[package]]

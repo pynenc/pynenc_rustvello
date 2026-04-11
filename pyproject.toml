@@ -1,6 +1,6 @@
 [project]
 name = "pynenc-rustvello"
-version = "0.1.2"
+version = "0.1.3"
 description = "Rust-powered backend plugin for pynenc (via rustvello)."
 authors = [{ name = "Luis Diaz", email = "code.luis.diaz@proton.me" }]
 license = { text = "MIT License" }
@@ -17,8 +17,8 @@ classifiers = [
 ]
 
 dependencies = [
-    "pynenc>=0.1.0",
-    "rustvello>=0.1.5",
+    "pynenc>=0.2.0",
+    "rustvello>=0.1.6",
 ]
 
 [project.urls]
@@ -46,7 +46,7 @@ dev = [
     "pre-commit>=3.5.0",
 ]
 tests = [
-    "pynenc[tests]>=0.1.0",
+    "pynenc[tests]>=0.2.0",
     "psutil>=7.0.0",
     "pytest-timeout>=2.2.0",
     "testcontainers[postgres,redis,rabbitmq,mongodb]>=4.13.0",
@@ -68,12 +68,6 @@ build-backend = "hatchling.build"
 
 [tool.uv]
 managed = true
-
-# Dev-time local overrides — paths relative to pynenc_rustvello_repo/
-# inside the rustvello workspace
-[tool.uv.sources]
-pynenc = { path = "../pynenc_repo", editable = true }
-rustvello = { path = "../py-rustvello", editable = true }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
