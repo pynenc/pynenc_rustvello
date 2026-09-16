@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
 from pynenc.broker.base_broker import BaseBroker
+from pynenc.conf.config_broker import DEFAULT_PRIORITY, DEFAULT_QUEUE, validate_priority
 
 if TYPE_CHECKING:
     from pynenc.app import Pynenc
@@ -107,47 +109,137 @@ def _get_or_create_mongo_pool(app: Any) -> Any:
     return pool
 
 
+# All pynenc tasks are Python tasks: rows are routed and retrieved on rustvello's Python lane.
+PYTHON_LANE = "python"
+
+
+def _untyped_task_id() -> TaskId:
+    """Task identity for ids routed through the bare BaseBroker API, which carries no task.
+
+    Keeping such rows on the Python lane means language-aware retrieval still finds them.
+    """
+    from pynenc.identifiers.task_id import TaskId as _TaskId
+
+    return _TaskId(module="pynenc_rustvello", func_name="untyped_invocation")
+
+
 class _RustvelloBroker(BaseBroker):
-    """Base broker that delegates to a Rust PyO3 broker object."""
+    """Base broker that delegates to a Rust PyO3 broker object.
+
+    pynenc 0.4 routes every invocation to a logical queue with a priority. The
+    orchestrator adapter passes the task identity along (see
+    ``_RustvelloOrchestrator.route_invocation``) so rows land on the Python
+    lane of that queue; the bare ``BaseBroker`` API resolves the task from the
+    state backend and falls back to a plugin-owned sentinel task.
+    """
 
     def __init__(self, app: Pynenc, rust_broker: Any) -> None:
         super().__init__(app)
         self._rust = rust_broker
 
-    def route_invocation(self, invocation_id: InvocationId) -> None:
-        self._rust.route_invocation(str(invocation_id))
+    # ── pynenc 0.4 contract ────────────────────────────────────────────
 
-    def route_invocations(self, invocation_ids: list[InvocationId]) -> None:
-        self._rust.route_invocations([str(i) for i in invocation_ids])
+    def _route_invocation(
+        self, invocation_id: InvocationId, queue_name: str, priority: float
+    ) -> None:
+        task_id = self._resolve_task_id(invocation_id)
+        self._rust.route_invocation_to_queue(
+            str(invocation_id),
+            queue_name,
+            priority,
+            task_module=str(task_id.module),
+            task_name=str(task_id.func_name),
+            language=PYTHON_LANE,
+        )
 
-    def retrieve_invocation(self) -> InvocationId | None:
+    def _route_invocations(
+        self,
+        invocation_ids: Sequence[InvocationId],
+        queue_name: str,
+        priority: float,
+    ) -> None:
+        by_task: dict[TaskId, list[str]] = {}
+        for invocation_id in invocation_ids:
+            by_task.setdefault(self._resolve_task_id(invocation_id), []).append(
+                str(invocation_id)
+            )
+        for task_id, ids in by_task.items():
+            self._rust.route_invocations_to_queue(
+                ids,
+                queue_name,
+                priority,
+                task_module=str(task_id.module),
+                task_name=str(task_id.func_name),
+                language=PYTHON_LANE,
+            )
+
+    def retrieve_invocation(self, queue_name: str | None = None) -> InvocationId | None:
         from pynenc.identifiers.invocation_id import InvocationId
 
-        result = self._rust.retrieve_invocation()
+        queue = self.conf.queues[0] if queue_name is None else queue_name
+        self._validate_queue_names((queue,))
+        result = self._rust.retrieve_invocation_from_queue(queue, language=PYTHON_LANE)
         if result is None:
             return None
         return InvocationId(result)
 
-    def count_invocations(self) -> int:
-        return self._rust.count_invocations()
+    def count_invocations(self, queue_names: Sequence[str] | None = None) -> int:
+        queues = tuple(self.conf.queues if queue_names is None else queue_names)
+        self._validate_queue_names(queues)
+        return self._rust.count_invocations_in_queues(list(queues))
 
     def purge(self) -> None:
         self._rust.purge()
 
-    # ── Per-task / language extensions (Rust-only, not in pynenc ABC) ──
+    # ── Task-aware routing (used by the orchestrator adapter) ──────────
 
     def route_invocation_for_task(
-        self, invocation_id: InvocationId, task_id: TaskId
+        self,
+        invocation_id: InvocationId,
+        task_id: TaskId,
+        queue_name: str = DEFAULT_QUEUE,
+        priority: float = DEFAULT_PRIORITY,
     ) -> None:
-        self._rust.route_invocation_for_task(
-            str(invocation_id), str(task_id.module), str(task_id.func_name)
+        """Route with a known task identity, skipping the state-backend lookup."""
+        self._validate_queue_names((queue_name,))
+        validate_priority(priority, label="Broker priority")
+        self._rust.route_invocation_to_queue(
+            str(invocation_id),
+            queue_name,
+            priority,
+            task_module=str(task_id.module),
+            task_name=str(task_id.func_name),
+            language=PYTHON_LANE,
         )
 
-    def retrieve_invocation_for_task(self, task_id: TaskId) -> InvocationId | None:
+    def route_invocations_for_task(
+        self,
+        invocation_ids: Sequence[InvocationId],
+        task_id: TaskId,
+        queue_name: str = DEFAULT_QUEUE,
+        priority: float = DEFAULT_PRIORITY,
+    ) -> None:
+        """Batch variant of :meth:`route_invocation_for_task`."""
+        self._validate_queue_names((queue_name,))
+        validate_priority(priority, label="Broker priority")
+        self._rust.route_invocations_to_queue(
+            [str(i) for i in invocation_ids],
+            queue_name,
+            priority,
+            task_module=str(task_id.module),
+            task_name=str(task_id.func_name),
+            language=PYTHON_LANE,
+        )
+
+    def retrieve_invocation_for_task(
+        self, task_id: TaskId, queue_name: str = DEFAULT_QUEUE
+    ) -> InvocationId | None:
         from pynenc.identifiers.invocation_id import InvocationId
 
-        result = self._rust.retrieve_invocation_for_task(
-            str(task_id.module), str(task_id.func_name)
+        result = self._rust.retrieve_invocation_from_queue(
+            queue_name,
+            task_module=str(task_id.module),
+            task_name=str(task_id.func_name),
         )
         if result is None:
             return None
@@ -161,13 +253,29 @@ class _RustvelloBroker(BaseBroker):
             return None
         return InvocationId(result)
 
-    def count_invocations_for_task(self, task_id: TaskId) -> int:
-        return self._rust.count_invocations_for_task(
-            str(task_id.module), str(task_id.func_name)
+    def count_invocations_for_task(
+        self, task_id: TaskId, queue_names: Sequence[str] | None = None
+    ) -> int:
+        queues = list(self.conf.queues if queue_names is None else queue_names)
+        return self._rust.count_invocations_in_queues(
+            queues,
+            task_module=str(task_id.module),
+            task_name=str(task_id.func_name),
         )
 
     def purge_task(self, task_id: TaskId) -> None:
         self._rust.purge_task(str(task_id.module), str(task_id.func_name))
+
+    # ── helpers ────────────────────────────────────────────────────────
+
+    def _resolve_task_id(self, invocation_id: InvocationId) -> TaskId:
+        try:
+            invocation = self.app.state_backend.get_invocation(invocation_id)
+        except Exception:  # noqa: BLE001 - ids routed through the bare API may be unknown to the state backend
+            invocation = None
+        if invocation is None:
+            return _untyped_task_id()
+        return invocation.task.task_id
 
 
 class RustMemBroker(_RustvelloBroker):

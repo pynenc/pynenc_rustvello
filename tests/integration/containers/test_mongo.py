@@ -66,7 +66,7 @@ class TestMongoConnectionLifecycle:
         try:
             mongo_task.app = app1
             inv = DistributedInvocation.isolated(Call(mongo_task))
-            app1.broker.route_invocation(inv.invocation_id)
+            app1.broker.route_invocation(inv.invocation_id, "default", 0.0)
             assert app1.broker.count_invocations() >= 1
             mongo_task.app = app2
             assert app2.broker.count_invocations() == 0
@@ -79,7 +79,7 @@ class TestMongoConnectionLifecycle:
         mongo_task.app = mongo_app
         inv = DistributedInvocation.isolated(Call(mongo_task))
 
-        mongo_app.broker.route_invocation(inv.invocation_id)
+        mongo_app.broker.route_invocation(inv.invocation_id, "default", 0.0)
         mongo_app.orchestrator.register_new_invocations([inv])
         mongo_app.state_backend.upsert_invocations([inv])
         retrieved = mongo_app.state_backend.get_invocation(inv.invocation_id)
@@ -91,7 +91,7 @@ class TestMongoConnectionLifecycle:
     def test_purge_clears_all(self, mongo_app: Pynenc) -> None:
         mongo_task.app = mongo_app
         inv = DistributedInvocation.isolated(Call(mongo_task))
-        mongo_app.broker.route_invocation(inv.invocation_id)
+        mongo_app.broker.route_invocation(inv.invocation_id, "default", 0.0)
         mongo_app.orchestrator.register_new_invocations([inv])
         mongo_app.state_backend.upsert_invocations([inv])
 

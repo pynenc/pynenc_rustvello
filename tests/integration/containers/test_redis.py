@@ -51,7 +51,7 @@ class TestRedisConnectionLifecycle:
         try:
             redis_task.app = app1
             inv = DistributedInvocation.isolated(Call(redis_task))
-            app1.broker.route_invocation(inv.invocation_id)
+            app1.broker.route_invocation(inv.invocation_id, "default", 0.0)
             assert app1.broker.count_invocations() >= 1
             redis_task.app = app2
             assert app2.broker.count_invocations() == 0
@@ -64,7 +64,7 @@ class TestRedisConnectionLifecycle:
         redis_task.app = redis_app
         inv = DistributedInvocation.isolated(Call(redis_task))
 
-        redis_app.broker.route_invocation(inv.invocation_id)
+        redis_app.broker.route_invocation(inv.invocation_id, "default", 0.0)
         redis_app.orchestrator.register_new_invocations([inv])
         redis_app.state_backend.upsert_invocations([inv])
         retrieved = redis_app.state_backend.get_invocation(inv.invocation_id)
@@ -76,7 +76,7 @@ class TestRedisConnectionLifecycle:
     def test_purge_clears_all(self, redis_app: Pynenc) -> None:
         redis_task.app = redis_app
         inv = DistributedInvocation.isolated(Call(redis_task))
-        redis_app.broker.route_invocation(inv.invocation_id)
+        redis_app.broker.route_invocation(inv.invocation_id, "default", 0.0)
         redis_app.orchestrator.register_new_invocations([inv])
         redis_app.state_backend.upsert_invocations([inv])
 

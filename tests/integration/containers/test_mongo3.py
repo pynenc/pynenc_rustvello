@@ -68,7 +68,7 @@ class TestMongo3ConnectionLifecycle:
         try:
             mongo3_task.app = app1
             inv = DistributedInvocation.isolated(Call(mongo3_task))
-            app1.broker.route_invocation(inv.invocation_id)
+            app1.broker.route_invocation(inv.invocation_id, "default", 0.0)
             assert app1.broker.count_invocations() >= 1
             mongo3_task.app = app2
             assert app2.broker.count_invocations() == 0
@@ -81,7 +81,7 @@ class TestMongo3ConnectionLifecycle:
         mongo3_task.app = mongo3_app
         inv = DistributedInvocation.isolated(Call(mongo3_task))
 
-        mongo3_app.broker.route_invocation(inv.invocation_id)
+        mongo3_app.broker.route_invocation(inv.invocation_id, "default", 0.0)
         mongo3_app.orchestrator.register_new_invocations([inv])
         mongo3_app.state_backend.upsert_invocations([inv])
         retrieved = mongo3_app.state_backend.get_invocation(inv.invocation_id)
@@ -93,7 +93,7 @@ class TestMongo3ConnectionLifecycle:
     def test_purge_clears_all(self, mongo3_app: Pynenc) -> None:
         mongo3_task.app = mongo3_app
         inv = DistributedInvocation.isolated(Call(mongo3_task))
-        mongo3_app.broker.route_invocation(inv.invocation_id)
+        mongo3_app.broker.route_invocation(inv.invocation_id, "default", 0.0)
         mongo3_app.orchestrator.register_new_invocations([inv])
         mongo3_app.state_backend.upsert_invocations([inv])
 

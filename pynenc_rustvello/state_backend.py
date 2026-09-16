@@ -60,7 +60,7 @@ def _workflow_to_rust_json(wf: WorkflowIdentity) -> str:
         {
             "workflow_id": str(wf.workflow_id),
             "workflow_type": {
-                "language": "",
+                "language": "python",
                 "module": str(wf.workflow_type.module),
                 "name": str(wf.workflow_type.func_name),
             },
@@ -96,9 +96,12 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
     def __init__(self, app: Pynenc, rust_sb: Any) -> None:
         super().__init__(app)
         self._rust = rust_sb
+        # rustvello's invocation row has no parent_event_id yet; keep pynenc's event->children index here.
+        self._event_to_children: dict[str, list[str]] = {}
 
     def purge(self) -> None:
         self._rust.purge()
+        self._event_to_children.clear()
 
     # --- Invocation storage ---
 
@@ -127,6 +130,12 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
                 parent_id,
                 workflow_json,
             )
+            if inv_dto.parent_event_id is not None:
+                children = self._event_to_children.setdefault(
+                    str(inv_dto.parent_event_id), []
+                )
+                if inv_id not in children:
+                    children.append(inv_id)
 
     def _get_invocation(
         self, invocation_id: InvocationId
@@ -169,7 +178,11 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
             )
 
         # Get serialized arguments from Rust call
-        call_id_str = f"{task_id_data['module']}.{task_id_data['name']}:{args_id}"
+        # rustvello 0.5 call ids are language-qualified: python::module.name:args_id
+        language = task_id_data.get("language") or "python"
+        call_id_str = (
+            f"{language}::{task_id_data['module']}.{task_id_data['name']}:{args_id}"
+        )
         try:
             call_json_str = self._rust.get_call(call_id_str)
             call_data = json.loads(call_json_str)
@@ -197,6 +210,14 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
         from pynenc.identifiers.invocation_id import InvocationId
 
         for child_id in self._rust.get_child_invocations(str(parent_invocation_id)):
+            yield InvocationId(child_id)
+
+    def get_invocations_by_parent_event(
+        self, parent_event_id: str
+    ) -> Iterator[InvocationId]:
+        from pynenc.identifiers.invocation_id import InvocationId
+
+        for child_id in self._event_to_children.get(str(parent_event_id), []):
             yield InvocationId(child_id)
 
     # --- History ---
@@ -365,7 +386,8 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
         from pynenc.identifiers.task_id import TaskId
 
         for key in self._rust.get_all_workflow_types():
-            yield TaskId.from_key(key)
+            # rustvello keys are language-qualified (python::module.name); pynenc keys are not
+            yield TaskId.from_key(key.rsplit("::", 1)[-1])
 
     def get_all_workflow_runs(self) -> Iterator[WorkflowIdentity]:
         for wf_json in self._rust.get_all_workflow_runs():
@@ -483,8 +505,10 @@ class _RustvelloStateBackend(BaseStateBackend[Params, Result]):
             runner_context.pid,
             runner_context.hostname,
             runner_context.thread_id,
-            parent_id,
-            parent_cls,
+            runner_language="python",
+            executor_kind="python",
+            parent_runner_id=parent_id,
+            parent_runner_cls=parent_cls,
         )
 
     def get_matching_runner_contexts(self, partial_id: str) -> Iterator[RunnerContext]:

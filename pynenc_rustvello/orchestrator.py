@@ -2,13 +2,20 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
-from datetime import UTC, datetime
+import threading
+from collections.abc import Iterator, Sequence
+from datetime import UTC, datetime, timedelta
 from time import time
 from typing import TYPE_CHECKING, Any
 
 from pynenc.invocation.status import InvocationStatus, InvocationStatusRecord
+from pynenc.orchestrator.atomic_service import (
+    AtomicServiceExecution,
+    AtomicServiceExecutionStatus,
+)
 from pynenc.orchestrator.base_orchestrator import BaseBlockingControl, BaseOrchestrator
+
+from pynenc_rustvello.broker import _RustvelloBroker
 
 if TYPE_CHECKING:
     from pynenc.app import Pynenc
@@ -16,7 +23,7 @@ if TYPE_CHECKING:
     from pynenc.identifiers.invocation_id import InvocationId
     from pynenc.identifiers.task_id import TaskId
     from pynenc.invocation.dist_invocation import DistributedInvocation
-    from pynenc.orchestrator.atomic_service import ActiveRunnerInfo
+    from pynenc.orchestrator.atomic_service import ActiveRunnerInfo, AtomicServiceRun
     from pynenc.task import Task
     from pynenc.types import Params, Result
 
@@ -71,6 +78,48 @@ class _RustvelloOrchestrator(BaseOrchestrator):
         super().__init__(app)
         self._rust = rust_orch
         self._blocking = _RustBlockingControl(self._rust)
+        # Queues per runner ride along the Rust heartbeat; rustvello's heartbeat has no queue field yet.
+        self._runner_consumed_queues: dict[str, tuple[str, ...]] = {}
+        # Atomic-service execution records keep pynenc 0.4 status/reason detail that rustvello's
+        # timeline (runner, start, end) cannot hold; finalized windows are mirrored into it.
+        self._atomic_service_executions: list[AtomicServiceExecution] = []
+        self._atomic_service_lock = threading.RLock()
+
+    # ------------------------------------------------------------------
+    # Routing — pass the task identity so rows land on the Python lane
+    # ------------------------------------------------------------------
+
+    def route_invocation(
+        self, invocation: DistributedInvocation[Params, Result]
+    ) -> None:
+        broker = self.app.broker
+        if not isinstance(broker, _RustvelloBroker):
+            super().route_invocation(invocation)
+            return
+        task = invocation.task
+        broker.route_invocation_for_task(
+            invocation.invocation_id,
+            task.task_id,
+            task.broker_queue,
+            task.broker_priority,
+        )
+
+    def route_invocations(
+        self, invocations: Sequence[DistributedInvocation[Params, Result]]
+    ) -> None:
+        broker = self.app.broker
+        if not isinstance(broker, _RustvelloBroker):
+            super().route_invocations(invocations)
+            return
+        routes: dict[tuple[TaskId, str, float], list[InvocationId]] = {}
+        for invocation in invocations:
+            task = invocation.task
+            key = (task.task_id, task.broker_queue, task.broker_priority)
+            routes.setdefault(key, []).append(invocation.invocation_id)
+        for (task_id, queue_name, priority), invocation_ids in routes.items():
+            broker.route_invocations_for_task(
+                invocation_ids, task_id, queue_name, priority
+            )
 
     # ------------------------------------------------------------------
     # Registration — delegated to Rust
@@ -286,6 +335,9 @@ class _RustvelloOrchestrator(BaseOrchestrator):
 
     def purge(self) -> None:
         self._rust.purge()
+        self._runner_consumed_queues.clear()
+        with self._atomic_service_lock:
+            self._atomic_service_executions.clear()
 
     # ------------------------------------------------------------------
     # Blocking control
@@ -303,29 +355,14 @@ class _RustvelloOrchestrator(BaseOrchestrator):
         self,
         runner_ids: list[str],
         can_run_atomic_service: bool = False,
+        consumed_queues: Sequence[str] | None = None,
     ) -> None:
-        for runner_id in runner_ids:
+        # rustvello stamps each heartbeat separately; registering in runner_id order keeps one
+        # batch ordered like pynenc's single-timestamp semantics (creation_time, runner_id).
+        for runner_id in sorted(runner_ids):
             self._rust.register_heartbeat(runner_id, can_run_atomic_service)
-
-    def record_atomic_service_execution(
-        self, runner_id: str, start_time: Any, end_time: Any
-    ) -> None:
-        start_ts = (
-            start_time.timestamp()
-            if hasattr(start_time, "timestamp")
-            else float(start_time)
-        )
-        end_ts = (
-            end_time.timestamp() if hasattr(end_time, "timestamp") else float(end_time)
-        )
-        self._rust.record_atomic_service_execution(runner_id, start_ts, end_ts)
-
-    def get_atomic_service_timeline(self) -> list[dict]:
-        """Return the atomic service execution timeline from Rust.
-
-        Each entry is a dict with keys: runner_id, start_time, end_time.
-        """
-        return self._rust.get_atomic_service_timeline()
+            if consumed_queues is not None:
+                self._runner_consumed_queues[runner_id] = tuple(consumed_queues)
 
     def _get_active_runners(
         self,
@@ -341,25 +378,206 @@ class _RustvelloOrchestrator(BaseOrchestrator):
             last_hb = datetime.fromisoformat(r["last_heartbeat"])
             if (now - last_hb).total_seconds() > timeout_seconds:
                 continue
-            creation = datetime.fromisoformat(r["creation_time"])
-            last_start = None
-            last_end = None
-            if r.get("last_service_start"):
-                last_start = datetime.fromisoformat(r["last_service_start"])
-            if r.get("last_service_end"):
-                last_end = datetime.fromisoformat(r["last_service_end"])
             result.append(
                 ActiveRunnerInfo(
                     runner_id=r["runner_id"],
-                    creation_time=creation,
+                    creation_time=datetime.fromisoformat(r["creation_time"]),
                     last_heartbeat=last_hb,
                     allow_to_run_atomic_service=r["can_run_atomic_service"],
-                    last_service_start=last_start,
-                    last_service_end=last_end,
+                    consumed_queues=self._runner_consumed_queues.get(
+                        r["runner_id"], ()
+                    ),
                 )
             )
-        result.sort(key=lambda info: info.creation_time)
+        # Contract: creation_time asc, runner_id asc.
+        result.sort(key=lambda info: (info.creation_time, info.runner_id))
         return result
+
+    # ------------------------------------------------------------------
+    # Atomic-service executions (pynenc 0.4 lifecycle records)
+    # ------------------------------------------------------------------
+
+    def record_atomic_service_execution_start(
+        self,
+        atomic_service_run: AtomicServiceRun,
+        started_at: datetime | None,
+        status: AtomicServiceExecutionStatus = AtomicServiceExecutionStatus.RUNNING,
+        reason: str = "",
+    ) -> bool:
+        atomic_service_id = atomic_service_run.atomic_service_id
+        with self._atomic_service_lock:
+            actual_started_at = started_at or datetime.now(UTC)
+            if status == AtomicServiceExecutionStatus.RUNNING:
+                active = [e for e in self._atomic_service_executions if e.is_active]
+                if active:
+                    prior = max(active, key=lambda e: e.start_time)
+                    atomic_service_run.started_at = actual_started_at
+                    self._atomic_service_executions.append(
+                        AtomicServiceExecution(
+                            atomic_service_id=atomic_service_id,
+                            start_time=actual_started_at,
+                            end_time=actual_started_at,
+                            status=AtomicServiceExecutionStatus.BLOCKED,
+                            reason=reason
+                            or (
+                                f"prior_running:{prior.atomic_service_run_id} "
+                                f"runner:{prior.runner_id}"
+                            ),
+                        )
+                    )
+                    self.purge_atomic_service_executions()
+                    return False
+            atomic_service_run.started_at = actual_started_at
+            end_time = (
+                actual_started_at
+                if status == AtomicServiceExecutionStatus.BLOCKED
+                else None
+            )
+            self._atomic_service_executions.append(
+                AtomicServiceExecution(
+                    atomic_service_id=atomic_service_id,
+                    start_time=actual_started_at,
+                    end_time=end_time,
+                    status=status,
+                    reason=reason,
+                )
+            )
+            if status != AtomicServiceExecutionStatus.RUNNING:
+                self.purge_atomic_service_executions()
+            return status != AtomicServiceExecutionStatus.BLOCKED
+
+    def finalize_atomic_service_execution(
+        self,
+        atomic_service_run: AtomicServiceRun,
+        end_time: datetime,
+        status: AtomicServiceExecutionStatus,
+        reason: str = "",
+    ) -> None:
+        atomic_service_id = atomic_service_run.atomic_service_id
+        target_id = atomic_service_id.atomic_service_run_id
+        with self._atomic_service_lock:
+            for idx, existing in enumerate(self._atomic_service_executions):
+                if existing.atomic_service_run_id != target_id:
+                    continue
+                if not existing.is_active:
+                    return
+                updated = existing._replace(
+                    end_time=end_time, status=status, reason=reason or existing.reason
+                )
+                self._atomic_service_executions[idx] = updated
+                self._mirror_execution_to_rust(updated)
+                self.purge_atomic_service_executions()
+                return
+            terminal = AtomicServiceExecution(
+                atomic_service_id=atomic_service_id,
+                start_time=end_time,
+                end_time=end_time,
+                status=status,
+                reason=reason,
+            )
+            self._atomic_service_executions.append(terminal)
+            self._mirror_execution_to_rust(terminal)
+            self.purge_atomic_service_executions()
+
+    def _mirror_execution_to_rust(self, execution: AtomicServiceExecution) -> None:
+        """Best effort: keep rustvello's monitoring timeline aware of finalized windows."""
+        if execution.end_time is None:
+            return
+        try:
+            self._rust.record_atomic_service_execution(
+                execution.runner_id,
+                execution.start_time.timestamp(),
+                execution.end_time.timestamp(),
+            )
+        except Exception:  # noqa: BLE001 - monitoring mirror must never break the runner
+            self.app.logger.debug(
+                "could not mirror atomic-service execution to rustvello"
+            )
+
+    def get_active_atomic_service_executions(self) -> list[AtomicServiceExecution]:
+        with self._atomic_service_lock:
+            active = [e for e in self._atomic_service_executions if e.is_active]
+        active.sort(key=lambda e: e.start_time, reverse=True)
+        return active
+
+    def get_atomic_service_executions_in_timerange(
+        self,
+        start_time: datetime,
+        end_time: datetime,
+        limit: int = 1000,
+        *,
+        runner_id: str | None = None,
+        min_duration_seconds: float = 0.0,
+    ) -> list[AtomicServiceExecution]:
+        with self._atomic_service_lock:
+            matches = [
+                e
+                for e in self._atomic_service_executions
+                if (e.end_time or e.start_time) >= start_time
+                and e.start_time <= end_time
+                and (runner_id is None or e.runner_id == runner_id)
+                and (
+                    min_duration_seconds <= 0.0
+                    or e.duration_seconds >= min_duration_seconds
+                )
+            ]
+        matches.sort(key=lambda e: e.start_time, reverse=True)
+        return matches[: max(limit, 0)]
+
+    def purge_atomic_service_executions(self) -> int:
+        retention_minutes = float(
+            self.app.conf.atomic_service_execution_retention_minutes
+        )
+        max_records = int(self.app.conf.atomic_service_execution_max_records)
+        protected = self.app.trigger.get_referenced_atomic_service_run_ids()
+        removed = 0
+        with self._atomic_service_lock:
+            executions = self._atomic_service_executions
+            if retention_minutes > 0 and executions:
+                cutoff = datetime.now(UTC) - timedelta(minutes=retention_minutes)
+                kept = [
+                    e
+                    for e in executions
+                    if e.end_time is None
+                    or e.end_time >= cutoff
+                    or e.atomic_service_run_id in protected
+                ]
+                removed += len(executions) - len(kept)
+                executions = kept
+            if max_records > 0 and len(executions) > max_records:
+                ordered = sorted(executions, key=lambda e: e.start_time)
+                protected_records = [
+                    e for e in ordered if e.atomic_service_run_id in protected
+                ]
+                unprotected = [
+                    e for e in ordered if e.atomic_service_run_id not in protected
+                ]
+                keep_unprotected = unprotected[-max_records:] if max_records else []
+                removed += len(unprotected) - len(keep_unprotected)
+                executions = sorted(
+                    protected_records + keep_unprotected, key=lambda e: e.start_time
+                )
+            self._atomic_service_executions = executions
+        return removed
+
+    # Rust-native timeline passthroughs, kept for the cross-backend integration tests.
+
+    def record_atomic_service_execution(
+        self, runner_id: str, start_time: Any, end_time: Any
+    ) -> None:
+        start_ts = (
+            start_time.timestamp()
+            if hasattr(start_time, "timestamp")
+            else float(start_time)
+        )
+        end_ts = (
+            end_time.timestamp() if hasattr(end_time, "timestamp") else float(end_time)
+        )
+        self._rust.record_atomic_service_execution(runner_id, start_ts, end_ts)
+
+    def get_atomic_service_timeline(self) -> list[dict]:
+        """Return the atomic service execution timeline from Rust (runner_id, start_time, end_time)."""
+        return self._rust.get_atomic_service_timeline()
 
     def get_pending_invocations_for_recovery(self) -> Iterator[InvocationId]:
         from pynenc.identifiers.invocation_id import InvocationId

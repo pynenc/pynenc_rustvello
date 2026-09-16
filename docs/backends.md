@@ -164,7 +164,14 @@ app = (
 )
 ```
 
-**Connection:** `mongo_url` + `mongo_db_name`.
+**Connection:** `mongo_url` + `mongo_db_name`, or the same keywords as
+pynenc-mongo's `.mongo()` (`url`, `db`, `host`, `port`, `username`,
+`password`, `auth_source`), assembled into the URI for you:
+
+```python
+# a pynenc-mongo app switches by renaming the call
+.rustvello_mongo3(host="mongo", port=27017, username="u", password="p", auth_source="admin", db="pynenc")
+```
 
 ---
 
@@ -192,4 +199,10 @@ app = (
 
 **Class:** `RustRabbitmqBroker`
 
-**Connection:** `rabbitmq_url` (AMQP URI) + optional `rabbitmq_prefix`.
+**Connection:** `rabbitmq_url` (AMQP URI) + optional `rabbitmq_prefix`, or
+pynenc-rabbitmq's `.rabbitmq_broker()` keywords (`host`, `port`, `username`,
+`password`, `virtual_host`, `queue_prefix`): `.rustvello_rabbitmq_broker(host="rabbitmq-service")`.
+
+Physical queues are named `<prefix>_rustvello_broker_<language>_<queue>`, one
+per logical queue and language lane; pynenc's `count_invocations((queue,))`
+and `retrieve_invocation(queue)` address the logical names.

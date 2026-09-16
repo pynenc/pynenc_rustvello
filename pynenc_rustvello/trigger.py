@@ -23,6 +23,7 @@ from pynenc.trigger.conditions import (
     StatusContext,
     ValidCondition,
 )
+from pynenc.trigger.mem_trigger import MemTrigger
 from rustvello import status_from_serde, status_to_serde
 
 if TYPE_CHECKING:
@@ -30,6 +31,11 @@ if TYPE_CHECKING:
     from pynenc.identifiers.task_id import TaskId
     from pynenc.models.trigger_definition_dto import TriggerDefinitionDTO
     from pynenc.trigger.conditions import ConditionContext, TriggerCondition
+    from pynenc.trigger.monitoring import (
+        EventMarkerPage,
+        EventRecord,
+        TriggerRunRecord,
+    )
     from pynenc.trigger.types import ConditionId
 
 
@@ -89,7 +95,7 @@ def _context_to_rust_json(ctx: ConditionContext) -> dict:
             "Result": {
                 "invocation_id": str(ctx.invocation_id),
                 "task_id": {
-                    "language": "",
+                    "language": "python",
                     "module": str(ctx.call_id.task_id.module),
                     "name": str(ctx.call_id.task_id.func_name),
                 },
@@ -104,7 +110,7 @@ def _context_to_rust_json(ctx: ConditionContext) -> dict:
             "Exception": {
                 "invocation_id": str(ctx.invocation_id),
                 "task_id": {
-                    "language": "",
+                    "language": "python",
                     "module": str(ctx.call_id.task_id.module),
                     "name": str(ctx.call_id.task_id.func_name),
                 },
@@ -118,7 +124,7 @@ def _context_to_rust_json(ctx: ConditionContext) -> dict:
             "Status": {
                 "invocation_id": str(ctx.invocation_id),
                 "task_id": {
-                    "language": "",
+                    "language": "python",
                     "module": str(ctx.call_id.task_id.module),
                     "name": str(ctx.call_id.task_id.func_name),
                 },
@@ -190,6 +196,10 @@ class _RustTriggerBase(BaseTrigger):
         # (CallId, Arguments, filter objects) that Rust JSON doesn't preserve.
         # Writes go to both Rust and the cache; reads come from the cache.
         self._vc_cache: dict[str, ValidCondition] = {}
+        # Monitoring evidence (event records, trigger runs, retention) has no rustvello binding
+        # yet, so it lives in pynenc's in-process store; conditions and claims stay in Rust.
+        self._evidence = MemTrigger(app)
+        self._evidence.conf = self.conf
 
     # ── Registration ───────────────────────────────────────────────
 
@@ -264,7 +274,7 @@ class _RustTriggerBase(BaseTrigger):
             {
                 "trigger_id": trigger.trigger_id,
                 "task_id": {
-                    "language": "",
+                    "language": "python",
                     "module": str(trigger.task_id.module),
                     "name": str(trigger.task_id.func_name),
                 },
@@ -370,6 +380,87 @@ class _RustTriggerBase(BaseTrigger):
     def _purge(self) -> None:
         self._rust.purge()
         self._vc_cache.clear()
+        self._evidence._purge()
+
+    # ── Monitoring evidence (pynenc 0.2.4+) — in-process, see __init__ ──
+
+    def store_event(self, event: EventRecord) -> None:
+        self._evidence.store_event(event)
+
+    def get_event(self, event_id: str) -> EventRecord | None:
+        return self._evidence.get_event(event_id)
+
+    def get_events(self, **filters: Any) -> list[EventRecord]:
+        return self._evidence.get_events(**filters)
+
+    def count_events(self, **filters: Any) -> int:
+        return self._evidence.count_events(**filters)
+
+    def get_event_markers_in_timerange(
+        self, start_time: datetime, end_time: datetime, **options: Any
+    ) -> EventMarkerPage:
+        return self._evidence.get_event_markers_in_timerange(
+            start_time, end_time, **options
+        )
+
+    def link_trigger_run_to_events(
+        self, event_ids: list[str], invocation_id: str, *, trigger_run_id: str
+    ) -> None:
+        self._evidence.link_trigger_run_to_events(
+            event_ids, invocation_id, trigger_run_id=trigger_run_id
+        )
+
+    def get_invocations_triggered_by_event(self, event_id: str) -> list[str]:
+        return self._evidence.get_invocations_triggered_by_event(event_id)
+
+    def list_event_codes(self) -> list[str]:
+        return self._evidence.list_event_codes()
+
+    def store_trigger_run(self, run: TriggerRunRecord) -> None:
+        self._evidence.store_trigger_run(run)
+
+    def get_trigger_run(self, trigger_run_id: str) -> TriggerRunRecord | None:
+        return self._evidence.get_trigger_run(trigger_run_id)
+
+    def get_trigger_runs_for_event(self, event_id: str) -> list[TriggerRunRecord]:
+        return self._evidence.get_trigger_runs_for_event(event_id)
+
+    def get_trigger_runs_for_invocation(
+        self, invocation_id: str
+    ) -> list[TriggerRunRecord]:
+        return self._evidence.get_trigger_runs_for_invocation(invocation_id)
+
+    def get_trigger_runs_sourced_by_invocation(
+        self, invocation_id: str
+    ) -> list[TriggerRunRecord]:
+        return self._evidence.get_trigger_runs_sourced_by_invocation(invocation_id)
+
+    def get_trigger_runs_for_valid_condition(
+        self, valid_condition_id: str
+    ) -> list[TriggerRunRecord]:
+        return self._evidence.get_trigger_runs_for_valid_condition(valid_condition_id)
+
+    def get_trigger_runs_in_timerange(
+        self, start_time: datetime, end_time: datetime, **filters: Any
+    ) -> list[TriggerRunRecord]:
+        return self._evidence.get_trigger_runs_in_timerange(
+            start_time, end_time, **filters
+        )
+
+    def _age_purge_events(self, threshold: datetime) -> list[str]:
+        return self._evidence._age_purge_events(threshold)
+
+    def _age_purge_trigger_runs(self, threshold: datetime) -> int:
+        return self._evidence._age_purge_trigger_runs(threshold)
+
+    def _cap_purge_events(self) -> list[str]:
+        return self._evidence._cap_purge_events()
+
+    def _cascade_delete_runs_for_events(self, event_ids: list[str]) -> int:
+        return self._evidence._cascade_delete_runs_for_events(event_ids)
+
+    def _cap_purge_trigger_runs(self) -> int:
+        return self._evidence._cap_purge_trigger_runs()
 
 
 # ---------------------------------------------------------------------------

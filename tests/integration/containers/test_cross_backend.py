@@ -62,7 +62,7 @@ class TestBroker:
     def test_route_and_retrieve(self, container_app: Pynenc) -> None:
         add.app = container_app
         inv = DistributedInvocation.isolated(Call(add))
-        container_app.broker.route_invocation(inv.invocation_id)
+        container_app.broker.route_invocation(inv.invocation_id, "default", 0.0)
         assert container_app.broker.count_invocations() >= 1
         retrieved = container_app.broker.retrieve_invocation()
         assert retrieved == inv.invocation_id
@@ -75,8 +75,8 @@ class TestBroker:
         add.app = container_app
         inv1 = DistributedInvocation.isolated(Call(add))
         inv2 = DistributedInvocation.isolated(Call(add))
-        container_app.broker.route_invocation(inv1.invocation_id)
-        container_app.broker.route_invocation(inv2.invocation_id)
+        container_app.broker.route_invocation(inv1.invocation_id, "default", 0.0)
+        container_app.broker.route_invocation(inv2.invocation_id, "default", 0.0)
         first = container_app.broker.retrieve_invocation()
         second = container_app.broker.retrieve_invocation()
         assert first == inv1.invocation_id
@@ -85,7 +85,7 @@ class TestBroker:
     def test_purge(self, container_app: Pynenc) -> None:
         add.app = container_app
         inv = DistributedInvocation.isolated(Call(add))
-        container_app.broker.route_invocation(inv.invocation_id)
+        container_app.broker.route_invocation(inv.invocation_id, "default", 0.0)
         assert container_app.broker.count_invocations() >= 1
         container_app.broker.purge()
         assert container_app.broker.count_invocations() == 0
@@ -93,7 +93,9 @@ class TestBroker:
     def test_batch_route(self, container_app: Pynenc) -> None:
         add.app = container_app
         invs = [DistributedInvocation.isolated(Call(add)) for _ in range(5)]
-        container_app.broker.route_invocations([inv.invocation_id for inv in invs])
+        container_app.broker.route_invocations(
+            [inv.invocation_id for inv in invs], "default", 0.0
+        )
         assert container_app.broker.count_invocations() == 5
 
 
@@ -812,7 +814,7 @@ class TestBrokerExtensions:
     def test_global_queue_language_fallback(self, container_app: Pynenc) -> None:
         add.app = container_app
         inv = DistributedInvocation.isolated(Call(add))
-        container_app.broker.route_invocation(inv.invocation_id)
+        container_app.broker.route_invocation(inv.invocation_id, "default", 0.0)
         # Global queue items should be accessible via any language retrieval
         retrieved = container_app.broker.retrieve_invocation_for_language("")
         # If the backend supports language fallback, it should find the inv

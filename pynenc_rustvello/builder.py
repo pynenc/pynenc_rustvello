@@ -232,18 +232,106 @@ def _rustvello_postgres_method(
     )
 
 
+def _mongo_url_from_parts(
+    host: str | None,
+    port: int | None,
+    username: str | None,
+    password: str | None,
+    auth_source: str | None,
+) -> str:
+    """Assemble a Mongo URI from the host/port/credential fields pynenc-mongo's ``.mongo()`` takes."""
+    from urllib.parse import quote
+
+    credentials = ""
+    if username:
+        credentials = quote(username, safe="")
+        if password:
+            credentials += ":" + quote(password, safe="")
+        credentials += "@"
+    query = f"/?authSource={quote(auth_source, safe='')}" if auth_source else ""
+    return f"mongodb://{credentials}{host or 'localhost'}:{port or 27017}{query}"
+
+
+def _amqp_url_from_parts(
+    host: str | None,
+    port: int | None,
+    username: str | None,
+    password: str | None,
+    virtual_host: str | None,
+) -> str:
+    """Assemble an AMQP URI from the fields pynenc-rabbitmq's ``.rabbitmq_broker()`` takes."""
+    from urllib.parse import quote
+
+    user = quote(username or "guest", safe="")
+    pwd = quote(password or "guest", safe="")
+    vhost = virtual_host if virtual_host is not None else "/"
+    vhost_part = "" if vhost == "/" else "/" + quote(vhost, safe="")
+    return f"amqp://{user}:{pwd}@{host or 'localhost'}:{port or 5672}{vhost_part}"
+
+
+def _mongo_kwargs(
+    mongo_url: str | None,
+    mongo_db_name: str | None,
+    url: str | None,
+    db: str | None,
+    host: str | None,
+    port: int | None,
+    username: str | None,
+    password: str | None,
+    auth_source: str | None,
+    kwargs: dict[str, Any],
+) -> dict[str, Any]:
+    """Resolve the Mongo connection into ``mongo_url`` / ``mongo_db_name`` config keys.
+
+    Accepts both this plugin's names (``mongo_url``, ``mongo_db_name``) and the
+    pynenc-mongo ``.mongo()`` names (``url``, ``db``, ``host``, ``port``,
+    ``username``, ``password``, ``auth_source``) so a pynenc-mongo app switches
+    by renaming the builder call.
+    """
+    resolved_url = mongo_url or url
+    if resolved_url is None and (host or port or username or password or auth_source):
+        resolved_url = _mongo_url_from_parts(
+            host, port, username, password, auth_source
+        )
+    if resolved_url:
+        kwargs["mongo_url"] = resolved_url
+    db_name = mongo_db_name or db
+    if db_name:
+        kwargs["mongo_db_name"] = db_name
+    return kwargs
+
+
 def _rustvello_mongo_method(
     builder: PynencBuilder,
     mongo_url: str | None = None,
     mongo_db_name: str | None = None,
     native: bool = True,
+    *,
+    url: str | None = None,
+    db: str | None = None,
+    host: str | None = None,
+    port: int | None = None,
+    username: str | None = None,
+    password: str | None = None,
+    auth_source: str | None = None,
     **kwargs: Any,
 ) -> PynencBuilder:
-    """Configure all backends to use the MongoDB (motor) Rust implementation."""
-    if mongo_url:
-        kwargs["mongo_url"] = mongo_url
-    if mongo_db_name:
-        kwargs["mongo_db_name"] = mongo_db_name
+    """Configure all backends to use the MongoDB (driver v3) Rust implementation.
+
+    Takes the same keyword names as pynenc-mongo's ``.mongo()``.
+    """
+    kwargs = _mongo_kwargs(
+        mongo_url,
+        mongo_db_name,
+        url,
+        db,
+        host,
+        port,
+        username,
+        password,
+        auth_source,
+        kwargs,
+    )
     return _rustvello_builder_method(builder, backend="mongo", native=native, **kwargs)
 
 
@@ -252,13 +340,34 @@ def _rustvello_mongo3_method(
     mongo_url: str | None = None,
     mongo_db_name: str | None = None,
     native: bool = True,
+    *,
+    url: str | None = None,
+    db: str | None = None,
+    host: str | None = None,
+    port: int | None = None,
+    username: str | None = None,
+    password: str | None = None,
+    auth_source: str | None = None,
     **kwargs: Any,
 ) -> PynencBuilder:
-    """Configure all backends to use the MongoDB 3.6+ legacy Rust implementation."""
-    if mongo_url:
-        kwargs["mongo_url"] = mongo_url
-    if mongo_db_name:
-        kwargs["mongo_db_name"] = mongo_db_name
+    """Configure all backends to use the MongoDB 3.6+ (legacy driver) Rust implementation.
+
+    Takes the same keyword names as pynenc-mongo's ``.mongo()``, so
+    ``.mongo(host=..., username=..., auth_source=...)`` becomes
+    ``.rustvello_mongo3(host=..., username=..., auth_source=...)``.
+    """
+    kwargs = _mongo_kwargs(
+        mongo_url,
+        mongo_db_name,
+        url,
+        db,
+        host,
+        port,
+        username,
+        password,
+        auth_source,
+        kwargs,
+    )
     return _rustvello_builder_method(builder, backend="mongo3", native=native, **kwargs)
 
 
@@ -270,18 +379,35 @@ def _rustvello_mongo3_method(
 
 def _rustvello_rabbitmq_broker_method(
     builder: PynencBuilder,
-    rabbitmq_url: str,
+    rabbitmq_url: str | None = None,
     rabbitmq_prefix: str | None = None,
+    *,
+    host: str | None = None,
+    port: int | None = None,
+    username: str | None = None,
+    password: str | None = None,
+    virtual_host: str | None = None,
+    queue_prefix: str | None = None,
     **kwargs: Any,
 ) -> PynencBuilder:
     """Set only the broker to RabbitMQ via rustvello.
 
     Combine with other ``rustvello_*`` methods to build a mixed-backend app.
-    ``rabbitmq_url`` must be a valid AMQP URI (e.g. ``amqp://guest:guest@localhost/``).
+    Either give ``rabbitmq_url`` (an AMQP URI such as ``amqp://guest:guest@localhost/``)
+    or the pynenc-rabbitmq ``.rabbitmq_broker()`` fields ``host``, ``port``,
+    ``username``, ``password``, ``virtual_host``; ``queue_prefix`` is an alias of
+    ``rabbitmq_prefix``.
     """
+    if rabbitmq_url is None:
+        if host is None and port is None and username is None and password is None:
+            raise ValueError("rustvello_rabbitmq_broker needs rabbitmq_url or host")
+        rabbitmq_url = _amqp_url_from_parts(
+            host, port, username, password, virtual_host
+        )
     kwargs["rabbitmq_url"] = rabbitmq_url
-    if rabbitmq_prefix:
-        kwargs["rabbitmq_prefix"] = rabbitmq_prefix
+    prefix = rabbitmq_prefix or queue_prefix
+    if prefix:
+        kwargs["rabbitmq_prefix"] = prefix
     return _set_component(builder, "broker_cls", "RustRabbitmqBroker", **kwargs)
 
 

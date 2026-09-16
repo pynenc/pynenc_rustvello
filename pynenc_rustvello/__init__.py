@@ -26,11 +26,18 @@ Note:
 
 import rustvello as _rv
 
-_MIN_RUSTVELLO = (0, 1, 0)
+_MIN_RUSTVELLO = (0, 5, 0)
 _ver = tuple(int(x) for x in _rv.__version__.split(".")[:3])
 if _ver < _MIN_RUSTVELLO:
     raise ImportError(
-        f"pynenc requires rustvello >= {'.'.join(str(v) for v in _MIN_RUSTVELLO)}, got {_rv.__version__}"
+        f"pynenc-rustvello requires rustvello >= {'.'.join(str(v) for v in _MIN_RUSTVELLO)}, got {_rv.__version__}"
+    )
+# pynenc 0.4 named queues need the queue-aware broker bindings, shipped after rustvello 0.5.0.
+if not hasattr(_rv.RustMemBroker, "route_invocation_to_queue"):
+    raise ImportError(
+        f"rustvello {_rv.__version__} lacks the queue-aware broker bindings "
+        "(route_invocation_to_queue, retrieve_invocation_from_queue, count_invocations_in_queues); "
+        "install a rustvello build newer than 0.5.0"
     )
 del _rv, _ver, _MIN_RUSTVELLO
 

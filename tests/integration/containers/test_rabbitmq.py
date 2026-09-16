@@ -34,7 +34,7 @@ class TestRabbitmqConnectionLifecycle:
         """App builds successfully and broker operations work."""
         rmq_task.app = rabbitmq_app
         inv = DistributedInvocation.isolated(Call(rmq_task))
-        rabbitmq_app.broker.route_invocation(inv.invocation_id)
+        rabbitmq_app.broker.route_invocation(inv.invocation_id, "default", 0.0)
         assert rabbitmq_app.broker.count_invocations() >= 1
 
     def test_multiple_apps_same_container(
@@ -63,7 +63,7 @@ class TestRabbitmqConnectionLifecycle:
             )
             rmq_task.app = app1
             inv = DistributedInvocation.isolated(Call(rmq_task))
-            app1.broker.route_invocation(inv.invocation_id)
+            app1.broker.route_invocation(inv.invocation_id, "default", 0.0)
             assert app1.broker.count_invocations() >= 1
             # app2 should not see app1's data (different app_id → different prefix)
             rmq_task.app = app2
@@ -82,8 +82,8 @@ class TestRabbitmqConnectionLifecycle:
         inv1 = DistributedInvocation.isolated(Call(rmq_task))
         inv2 = DistributedInvocation.isolated(Call(rmq_task))
 
-        rabbitmq_app.broker.route_invocation(inv1.invocation_id)
-        rabbitmq_app.broker.route_invocation(inv2.invocation_id)
+        rabbitmq_app.broker.route_invocation(inv1.invocation_id, "default", 0.0)
+        rabbitmq_app.broker.route_invocation(inv2.invocation_id, "default", 0.0)
         assert rabbitmq_app.broker.count_invocations() == 2
 
         retrieved_a = rabbitmq_app.broker.retrieve_invocation()
@@ -97,7 +97,7 @@ class TestRabbitmqConnectionLifecycle:
         rmq_task.app = rabbitmq_app
         for _ in range(3):
             inv = DistributedInvocation.isolated(Call(rmq_task))
-            rabbitmq_app.broker.route_invocation(inv.invocation_id)
+            rabbitmq_app.broker.route_invocation(inv.invocation_id, "default", 0.0)
         assert rabbitmq_app.broker.count_invocations() == 3
         rabbitmq_app.broker.purge()
         assert rabbitmq_app.broker.count_invocations() == 0
@@ -108,7 +108,7 @@ class TestRabbitmqConnectionLifecycle:
         inv = DistributedInvocation.isolated(Call(rmq_task))
 
         # Route via RabbitMQ broker
-        rabbitmq_app.broker.route_invocation(inv.invocation_id)
+        rabbitmq_app.broker.route_invocation(inv.invocation_id, "default", 0.0)
 
         # Register in SQLite orchestrator
         rabbitmq_app.orchestrator.register_new_invocations([inv])

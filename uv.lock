@@ -825,7 +825,7 @@ wheels = [
 
 [[package]]
 name = "pynenc"
-version = "0.2.0"
+version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cistell" },
@@ -834,9 +834,9 @@ dependencies = [
     { name = "pyyaml" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/96/c2/4472a704a480feb7c80f86d70aecb36c7e0e87b818c26dba2c9b8606b92c/pynenc-0.2.0.tar.gz", hash = "sha256:75215b5a6d4b24876b51f36d160f2b38c38348d93355f59b448bc7ffc695efd2", size = 3468447, upload-time = "2026-04-11T21:07:32.316Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2e/08/0b002cac249570d056f54ff8a0ac1a2653365e6659764c1cacd276fa8ac0/pynenc-0.4.0.tar.gz", hash = "sha256:742eec1a6ab8c172deb9ff6c61e004f396d45750834a140cc351415446a384a5", size = 4944015, upload-time = "2026-09-03T05:39:07.595Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/74/b3/bd4e6012f809762f7c569fe5e92e9f43f572eef42034630f18b8a459c3d7/pynenc-0.2.0-py3-none-any.whl", hash = "sha256:7255cbfcfd8d26895de0d360ed45be9503537ca6b8cd5be9c8dfc1529cbd8de7", size = 976619, upload-time = "2026-04-11T21:07:30.628Z" },
+    { url = "https://files.pythonhosted.org/packages/ac/a0/f0e5833e14e213a1520c68b696edbfc51539b2722234aea7080a32225e6d/pynenc-0.4.0-py3-none-any.whl", hash = "sha256:a81fbcc544ec1f619f8af1a287f2bdd524729a29e762c7e2bb68658cb99b1f26", size = 1254977, upload-time = "2026-09-03T05:39:05.295Z" },
 ]
 
 [package.optional-dependencies]
@@ -894,8 +894,8 @@ tests = [
 
 [package.metadata]
 requires-dist = [
-    { name = "pynenc", specifier = ">=0.2.0" },
-    { name = "rustvello", specifier = ">=0.1.6" },
+    { name = "pynenc", specifier = ">=0.4.0" },
+    { name = "rustvello", specifier = ">=0.5.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -920,7 +920,7 @@ docs = [
 tests = [
     { name = "psutil", specifier = ">=7.0.0" },
     { name = "pymongo", specifier = ">=4.6.0" },
-    { name = "pynenc", extras = ["tests"], specifier = ">=0.2.0" },
+    { name = "pynenc", extras = ["tests"], specifier = ">=0.4.0" },
     { name = "pytest-timeout", specifier = ">=2.2.0" },
     { name = "testcontainers", extras = ["postgres", "redis", "rabbitmq", "mongodb"], specifier = ">=4.13.0" },
 ]
@@ -1161,20 +1161,19 @@ wheels = [
 
 [[package]]
 name = "rustvello"
-version = "0.1.6"
+version = "0.5.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/3d/bb/f44d08401e924779eff788357ab43e1b5a02404526f81bd07debe2d4f24a/rustvello-0.1.6.tar.gz", hash = "sha256:8a0372e9a74dc6b4164851307caaf8ba643f30eed7f04a8e410342632975d580", size = 384215, upload-time = "2026-04-09T21:32:45.938Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a6/f8/45a8cffa3a54ecd94492e5a7adfaec5f075e36a9e7d8aee147388dadbb83/rustvello-0.5.0.tar.gz", hash = "sha256:fdbffcd532dfccbb7a18c909a6de2cd35bf5e79e65a66aef12dfefd5391ebe4d", size = 422680, upload-time = "2026-09-06T18:21:41.418Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/be/06/0bce8ac36a504dd13f1876cfbef2c67ac11d36486b1addb1593aa7205fbb/rustvello-0.1.6-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:a1f0c0182d8332d35541d388ca8fa81aa63cd6e34520d65a2407e1c7cb5e8a11", size = 16065234, upload-time = "2026-04-09T21:32:19.549Z" },
-    { url = "https://files.pythonhosted.org/packages/03/7f/81ad1b663e3d5534ad9bd664cbc3b7db50fbe6fcd0f450612ab64d7eb561/rustvello-0.1.6-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:1ec47041d4763946736997315fd6099860d8da4a19433a5b8a641185578e7ae1", size = 15275709, upload-time = "2026-04-09T21:32:21.994Z" },
-    { url = "https://files.pythonhosted.org/packages/0a/6e/3fa30e777fe3cccaee88d62a7a7ef1a6aeb3fab8c62413a12d482799524b/rustvello-0.1.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:66e57598ac832434aee93ece055da93f66fe22ae5932f748dd9df9c399748b12", size = 46888855, upload-time = "2026-04-09T21:32:24.748Z" },
-    { url = "https://files.pythonhosted.org/packages/7e/74/24afa30e151b79ae3efc00be5a23e73f69af2ca48370c1943e93a4204540/rustvello-0.1.6-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:d057d250e840620caf43ace8d4f98e63a4febe372c694ee6f28fe1643c7dd2b1", size = 45581520, upload-time = "2026-04-09T21:32:27.661Z" },
-    { url = "https://files.pythonhosted.org/packages/e2/5d/4cd3592b1b268881f9bee8774a68b72d5b11e0cd8b4abad9d8e7c2af7848/rustvello-0.1.6-cp312-cp312-win_amd64.whl", hash = "sha256:87088fb24b1d2880cfbdca1eb8396c67c5f53354885629115e941a6643037c0b", size = 15367771, upload-time = "2026-04-09T21:32:30.374Z" },
-    { url = "https://files.pythonhosted.org/packages/67/a3/001fc748168727dc9f1c9fbcd22d55a9c16e2c787bfd38904a50a85928f9/rustvello-0.1.6-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:e14528156f5bf380599607c46ec36a72173f04dfeb67f8a58df763e7d0287341", size = 16063876, upload-time = "2026-04-09T21:32:32.681Z" },
-    { url = "https://files.pythonhosted.org/packages/8c/3c/7937dce407eba8cbcde2adced6e884741d4205a33c6cb27c9112f8c208d2/rustvello-0.1.6-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:ad9bf0cd6926e2db9d2f88670ee322eb6d65ba5af1e6feb60a7593b57fe12afa", size = 15274396, upload-time = "2026-04-09T21:32:35.017Z" },
-    { url = "https://files.pythonhosted.org/packages/85/8b/2d4898aa2ed2605e8a5cbc04ea536250dd3d05c560502d99f9ddb4367e98/rustvello-0.1.6-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:18c7a7f59103b79afe3050186259368391f2118033710876f591dd4e9b5cd06e", size = 46885015, upload-time = "2026-04-09T21:32:37.983Z" },
-    { url = "https://files.pythonhosted.org/packages/d6/e6/11d39d9122fc27ddd8f844702721743bf56a5a25d9d8318f434b12b49186/rustvello-0.1.6-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:5669f62599e8a527f4e2b1df85dc9f63879d09589c47ff102a52ad0aed6ff7fe", size = 45577853, upload-time = "2026-04-09T21:32:41.686Z" },
-    { url = "https://files.pythonhosted.org/packages/bc/f1/75181677cc068b34796b0ecd3f2b5570fd1d53f4627c57b30705023eaaab/rustvello-0.1.6-cp313-cp313-win_amd64.whl", hash = "sha256:b393448624544875157a989a8abd3b063903b2f5d07b79558455971a425a0fd3", size = 15367052, upload-time = "2026-04-09T21:32:44.279Z" },
+    { url = "https://files.pythonhosted.org/packages/80/08/2ce88135ffa4ae5b634cf15fcaf0eb67b4b1097d30b9fc17d7c9d2b3da9b/rustvello-0.5.0-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:e5506b2b343efca9aba19088534e7665173584df1f093657960af4f193c9ae10", size = 16718001, upload-time = "2026-09-06T18:20:52.298Z" },
+    { url = "https://files.pythonhosted.org/packages/f7/65/2e71189e2fe97ca650a4306ca987a3692c66b11e25b083b87cc38eddea28/rustvello-0.5.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:7774ba2f27b9ab1d298ea86612a80f78455ee8425df5879a8dda7a33b44be6fa", size = 15879846, upload-time = "2026-09-06T18:20:55.256Z" },
+    { url = "https://files.pythonhosted.org/packages/d6/43/ae2ab61470e97b6fbe53f68bc29b0b15d563597e2028815d64f8a0548061/rustvello-0.5.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:eade2a46c976c2513faf873926fffad1540743ac0e4a57d467ba1a44fffcc33d", size = 48663114, upload-time = "2026-09-06T18:20:59.734Z" },
+    { url = "https://files.pythonhosted.org/packages/6e/0f/03602802b3f5ca517b7eb058d92b2cc06a0969a03f0f2cf0e8e0b0a5f3bc/rustvello-0.5.0-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:d8afa5689495affacb8ac7c857fd0d0575dd9786f16fd6b3e23d01669c4fb5a6", size = 47347856, upload-time = "2026-09-06T18:21:03.986Z" },
+    { url = "https://files.pythonhosted.org/packages/ed/c3/055463f7361bd8fcc20aa2b2093b269d7b6514d5b96461a7d5839b5b9fa9/rustvello-0.5.0-cp312-cp312-win_amd64.whl", hash = "sha256:60af0942e15e8168add241cb16053fc1fed70d886e1446f9fb1f795c601ff768", size = 16068043, upload-time = "2026-09-06T18:21:07.344Z" },
+    { url = "https://files.pythonhosted.org/packages/94/10/dd9e38703d068191d8b5e09e438843fe48cec67d2b6d2d3a5083dd17287a/rustvello-0.5.0-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:e746f7754c9f3149923c630fedee0690318362fcb5c1a5c1cc1517f731010838", size = 16716580, upload-time = "2026-09-06T18:21:10.604Z" },
+    { url = "https://files.pythonhosted.org/packages/4f/e6/f1f986bbdb45a6aa878b8e7521a42c1a22ac884f1efade7fd2fe73ac0a1d/rustvello-0.5.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:d5bc643f1971edd76db07f283a5468f7ea6811bfca931f39a23356c1849234f0", size = 15879531, upload-time = "2026-09-06T18:21:13.846Z" },
+    { url = "https://files.pythonhosted.org/packages/ed/ea/84e3d2823a47085becc6fae4191831ed3e63475f86f389484b1d3bc3121d/rustvello-0.5.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7584c1ec722bad27b5d3bd87cfd55e89fcd2032856e0c33353bcdba23eb07575", size = 48662623, upload-time = "2026-09-06T18:21:18.116Z" },
+    { url = "https://files.pythonhosted.org/packages/ad/c6/f949a12548468dc3f704e34145c1a4c432571b2813920e6c4aa1d6d0a521/rustvello-0.5.0-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:f35e8d6b9c3d61ae1ae37439c1028058213ba87237e232cce6fc1aa1f6fed41b", size = 47345178, upload-time = "2026-09-06T18:21:23.161Z" },
 ]
 
 [[package]]

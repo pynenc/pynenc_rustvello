@@ -61,7 +61,7 @@ class TestPostgresConnectionLifecycle:
         try:
             pg_task.app = app1
             inv = DistributedInvocation.isolated(Call(pg_task))
-            app1.broker.route_invocation(inv.invocation_id)
+            app1.broker.route_invocation(inv.invocation_id, "default", 0.0)
             assert app1.broker.count_invocations() >= 1
             # app2 should not see app1's data (different app_id)
             pg_task.app = app2
@@ -76,7 +76,7 @@ class TestPostgresConnectionLifecycle:
         inv = DistributedInvocation.isolated(Call(pg_task))
 
         # Route via broker
-        postgres_app.broker.route_invocation(inv.invocation_id)
+        postgres_app.broker.route_invocation(inv.invocation_id, "default", 0.0)
 
         # Register in orchestrator
         postgres_app.orchestrator.register_new_invocations([inv])
@@ -94,7 +94,7 @@ class TestPostgresConnectionLifecycle:
         """Purge removes data from all subsystems."""
         pg_task.app = postgres_app
         inv = DistributedInvocation.isolated(Call(pg_task))
-        postgres_app.broker.route_invocation(inv.invocation_id)
+        postgres_app.broker.route_invocation(inv.invocation_id, "default", 0.0)
         postgres_app.orchestrator.register_new_invocations([inv])
         postgres_app.state_backend.upsert_invocations([inv])
 

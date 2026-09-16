@@ -19,6 +19,22 @@ if TYPE_CHECKING:
     from pynenc.identifiers import InvocationId
 
 
+def _routing_only_task(args_json: str) -> str:
+    """Placeholder body for catalog registrations; pynenc's own runner executes the task."""
+    raise RuntimeError(
+        "pynenc-rustvello registers tasks in the Rust catalog for routing only; "
+        f"execution belongs to pynenc (args: {args_json[:80]})"
+    )
+
+
+def _catalog_errors() -> tuple[type[BaseException], ...]:
+    """Rust errors meaning the catalog cannot route this task; pynenc's Python path takes over."""
+    import rustvello.rustvello as _rv
+
+    names = ("TaskError", "TaskNotRegisteredError", "TaskNotFoundError")
+    return tuple(getattr(_rv, name) for name in names if hasattr(_rv, name))
+
+
 # ---------------------------------------------------------------------------
 # Native orchestrator base — single FFI call for hot-path coordination
 # ---------------------------------------------------------------------------
@@ -51,20 +67,85 @@ class _RustvelloNativeOrchestrator(_RustvelloOrchestrator):
     """
 
     _rust_app: Any = None
+    _native_unavailable: bool = False
+    _registered_task_keys: set[str] | None = None
 
-    def _ensure_rust_app(self) -> None:
-        """Lazily create a shared ``PyRustvello`` from pynenc's backend adapters."""
+    def _ensure_rust_app(self) -> bool:
+        """Lazily create a shared ``PyRustvello`` from pynenc's backend adapters.
+
+        Returns False when rustvello cannot compose these backends (for example a
+        broker class its ``from_backends`` extractor does not know); the hot paths
+        then run pynenc's Python-coordinated implementation instead of failing.
+
+        Every pynenc task known to the app is registered in the Rust task catalog
+        with its effective queue and priority: the retry and reroute composites
+        resolve routing from that catalog, so without it hyper-queue retries would
+        fall back to the default queue.
+        """
         if self._rust_app is not None:
-            return
+            return True
+        if self._native_unavailable:
+            return False
         from rustvello import Rustvello
 
-        self._rust_app = Rustvello.from_backends(
-            self._rust,
-            self.app.state_backend._rust,
-            self.app.broker._rust,
-            self.app.trigger._rust,
-            self.app.client_data_store._rust,
+        try:
+            rust_app = Rustvello.from_backends(
+                self._rust,
+                self.app.state_backend._rust,
+                self.app.broker._rust,
+                self.app.trigger._rust,
+                self.app.client_data_store._rust,
+            )
+        except TypeError as exc:
+            self._native_unavailable = True
+            self.app.logger.warning(
+                "rustvello native composites disabled, using Python coordination: %s",
+                exc,
+            )
+            return False
+        self._rust_app = rust_app
+        self._registered_task_keys = set()
+        for task in list(self.app.tasks.values()):
+            self._ensure_task_registered(task)
+        return True
+
+    def _disable_native(self, exc: BaseException) -> None:
+        """Stop using composites for this app; pynenc's Python coordination takes over."""
+        self._native_unavailable = True
+        self._rust_app = None
+        self.app.logger.warning(
+            "rustvello native composites disabled, using Python coordination: %s", exc
         )
+
+    def _ensure_task_registered(self, task: Any) -> None:
+        """Mirror one pynenc task's routing (queue, priority) into the Rust catalog."""
+        from rustvello import TaskConfig
+
+        keys = self._registered_task_keys
+        assert keys is not None
+        key = task.task_id.key
+        if key in keys:
+            return
+        try:
+            self._rust_app.register_task(
+                str(task.task_id.module),
+                str(task.task_id.func_name),
+                _routing_only_task,
+                TaskConfig(queue=task.broker_queue, priority=task.broker_priority),
+            )
+        except ValueError:
+            # Already present in the catalog (e.g. another adapter instance registered it).
+            pass
+        keys.add(key)
+
+    def _ensure_invocation_task_registered(self, invocation_id: InvocationId) -> None:
+        """Register the task behind ``invocation_id`` when only the id is known (retry, reroute)."""
+        try:
+            invocation = self.app.state_backend.get_invocation(invocation_id)
+        except Exception:  # noqa: BLE001 - missing invocation: the composite reports it itself
+            return
+        if invocation is not None:
+            self._ensure_task_registered(invocation.task)
 
     # ------------------------------------------------------------------
     # Hot-path overrides  (1 FFI call each)
@@ -80,13 +161,23 @@ class _RustvelloNativeOrchestrator(_RustvelloOrchestrator):
             InvocationStatusOwnershipError,
             InvocationStatusTransitionError,
         )
-        from rustvello.rustvello import StatusOwnershipError, StatusTransitionError
+        from rustvello.rustvello import (
+            ConfigurationError,
+            StatusOwnershipError,
+            StatusTransitionError,
+        )
 
-        self._ensure_rust_app()
+        if not self._ensure_rust_app():
+            super().set_invocation_status(invocation_id, status, runner_ctx)
+            return
         try:
             self._rust_app.set_invocation_status(
                 str(invocation_id), status.name, runner_ctx.runner_id
             )
+        except ConfigurationError as e:
+            # e.g. "mixed backends are not qualified" for durable publication: fall back for good
+            self._disable_native(e)
+            super().set_invocation_status(invocation_id, status, runner_ctx)
         except StatusOwnershipError as e:
             raise InvocationStatusOwnershipError(
                 from_status=InvocationStatus[e.from_status],
@@ -110,11 +201,19 @@ class _RustvelloNativeOrchestrator(_RustvelloOrchestrator):
         result: Any,
         runner_ctx: Any,
     ) -> None:
-        self._ensure_rust_app()
+        if not self._ensure_rust_app():
+            super().set_invocation_result(invocation, result, runner_ctx)
+            return
+        from rustvello.rustvello import ConfigurationError
+
         serialized = self.app.client_data_store.serialize(result)
-        self._rust_app.set_invocation_result(
-            str(invocation.invocation_id), serialized, runner_ctx.runner_id
-        )
+        try:
+            self._rust_app.set_invocation_result(
+                str(invocation.invocation_id), serialized, runner_ctx.runner_id
+            )
+        except ConfigurationError as e:
+            self._disable_native(e)
+            super().set_invocation_result(invocation, result, runner_ctx)
 
     def set_invocation_exception(
         self,
@@ -122,138 +221,70 @@ class _RustvelloNativeOrchestrator(_RustvelloOrchestrator):
         exception: Exception,
         runner_ctx: Any,
     ) -> None:
-        self._ensure_rust_app()
+        if not self._ensure_rust_app():
+            super().set_invocation_exception(invocation, exception, runner_ctx)
+            return
+        from rustvello.rustvello import ConfigurationError
+
         serialized = self.app.state_backend.serialize_exception(exception)
-        self._rust_app.set_invocation_exception(
-            str(invocation.invocation_id),
-            "SerializedException",
-            serialized,
-            runner_ctx.runner_id,
-        )
+        try:
+            self._rust_app.set_invocation_exception(
+                str(invocation.invocation_id),
+                "SerializedException",
+                serialized,
+                runner_ctx.runner_id,
+            )
+        except ConfigurationError as e:
+            self._disable_native(e)
+            super().set_invocation_exception(invocation, exception, runner_ctx)
 
     def set_invocation_retry(
         self,
-        invocation_id: InvocationId,
+        invocation: DistributedInvocation,
         exception: Exception,
         runner_ctx: Any,
     ) -> None:
-        self._ensure_rust_app()
-        self._rust_app.set_invocation_retry(str(invocation_id), runner_ctx.runner_id)
+        if not self._ensure_rust_app():
+            super().set_invocation_retry(invocation, exception, runner_ctx)
+            return
+        from rustvello.rustvello import ConfigurationError
+
+        self._ensure_task_registered(invocation.task)
+        try:
+            self._rust_app.set_invocation_retry(
+                str(invocation.invocation_id), runner_ctx.runner_id
+            )
+        except ConfigurationError as e:
+            self._disable_native(e)
+            super().set_invocation_retry(invocation, exception, runner_ctx)
+        except _catalog_errors():
+            # Task unknown to the Rust catalog: let pynenc route the retry with its own queue lookup.
+            super().set_invocation_retry(invocation, exception, runner_ctx)
 
     def reroute_invocations(
         self,
         invocations_to_reroute: set[InvocationId],
         runner_ctx: Any,
     ) -> None:
-        self._ensure_rust_app()
+        if not self._ensure_rust_app():
+            super().reroute_invocations(invocations_to_reroute, runner_ctx)
+            return
+        for inv_id in invocations_to_reroute:
+            self._ensure_invocation_task_registered(inv_id)
+        from rustvello.rustvello import ConfigurationError
+
         inv_ids = [str(inv_id) for inv_id in invocations_to_reroute]
-        self._rust_app.reroute_invocations(inv_ids, runner_ctx.runner_id)
+        try:
+            self._rust_app.reroute_invocations(inv_ids, runner_ctx.runner_id)
+        except ConfigurationError as e:
+            self._disable_native(e)
+            super().reroute_invocations(invocations_to_reroute, runner_ctx)
+        except _catalog_errors():
+            super().reroute_invocations(invocations_to_reroute, runner_ctx)
 
-    def route_call(self, call: Any) -> Any:
-        """Route a call using the Rust composite when possible.
-
-        Falls back to the Python implementation for KEYS concurrency control
-        with on_diff_non_key_args_raise (requires Python-side error handling).
-        """
-        from pynenc import context
-        from pynenc.conf.config_task import ConcurrencyControlType
-        from pynenc.exceptions import (
-            InvocationConcurrencyWithDifferentArgumentsError,
-        )
-        from pynenc.invocation.dist_invocation import (
-            DistributedInvocation,
-            ReusedInvocation,
-        )
-
-        self._ensure_rust_app()
-        runner_ctx = context.get_or_create_runner_context(self.app.app_id)
-        runner_id = runner_ctx.runner_id
-
-        task = call.task
-        task_id = task.task_id
-        reg_cc = task.conf.registration_concurrency
-        run_cc = task.conf.running_concurrency
-        index_cc = (
-            reg_cc != ConcurrencyControlType.DISABLED
-            or run_cc != ConcurrencyControlType.DISABLED
-        )
-
-        # Generate new invocation id (same as Python path)
-        parent_invocation = context.get_dist_invocation_context(self.app.app_id)
-        new_invocation = DistributedInvocation.from_parent(call, parent_invocation)
-        new_inv_id = str(new_invocation.invocation_id)
-
-        args = (
-            dict(call.serialized_arguments)
-            if hasattr(call, "serialized_arguments")
-            else {}
-        )
-        cc_args = (
-            dict(call.serialized_args_for_concurrency_check)
-            if call.serialized_args_for_concurrency_check is not None
-            else None
-        )
-
-        kind, inv_id_str, extra = self._rust_app.route_call(
-            new_inv_id,
-            str(task_id.module),
-            str(task_id.func_name),
-            args,
-            cc_args,
-            reg_cc.name,
-            index_cc,
-            runner_id,
-        )
-
-        if kind == "new":
-            # Rust created the invocation but doesn't know about Python
-            # workflow tracking — persist the full DTO with workflow info.
-            self.app.state_backend.upsert_invocations([new_invocation])
-            self.app.logger.info(f"invocation:{inv_id_str} ROUTED")
-            return new_invocation
-
-        # Reused — fetch the existing invocation from state backend
-        from pynenc.identifiers.invocation_id import InvocationId as PynencInvId
-
-        existing_inv_id = PynencInvId(inv_id_str)
-        existing_inv = self.app.state_backend.get_invocation(existing_inv_id)
-        if existing_inv is None:
-            # Race: invocation disappeared — fall back to new
-            return super().route_call(call)
-
-        if kind == "reused":
-            return ReusedInvocation(existing_inv)
-
-        # kind == "reused_diff_call"
-        if task.conf.on_diff_non_key_args_raise:
-            raise InvocationConcurrencyWithDifferentArgumentsError.from_call_mismatch(
-                existing_invocation=existing_inv, new_call=call
-            )
-        return ReusedInvocation(existing_inv, call.arguments)
-
-    # NOTE: get_invocations_to_run is NOT overridden here.
-    # The Rust composite's CC logic requires the task_registry, which is
-    # empty in from_backends()-created RustvelloApp instances (tasks are
-    # only registered in pynenc's Python app._tasks).  We fall back to
-    # pynenc's Python CC logic for now.
-
-    def check_atomic_services(self, runner_id: str) -> list[str] | None:
-        """Run full atomic service check via a single Rust composite call.
-
-        Combines heartbeat registration, distributed coordination algorithm,
-        trigger loop evaluation, and execution recording into one FFI call.
-
-        Returns ``None`` if this runner is not authorized to run now,
-        or a list of created invocation ID strings if the trigger loop ran.
-        """
-        self._ensure_rust_app()
-        conf = self.app.conf
-        return self._rust_app.check_atomic_services(
-            runner_id,
-            conf.atomic_service_interval_minutes,
-            conf.atomic_service_spread_margin_minutes,
-            conf.runner_considered_dead_after_minutes * 60,
-        )
+    # route_call is intentionally NOT overridden: pynenc 0.4 persists the new invocation before
+    # routing, which rustvello's durable-submission check rejects as a "legacy" id. pynenc's
+    # route_call routes through the queue-aware broker adapter, so nothing is lost but one FFI hop.
 
 
 # ---------------------------------------------------------------------------

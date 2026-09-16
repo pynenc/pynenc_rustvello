@@ -88,6 +88,50 @@ app = (
 )
 ```
 
+## Named queues (pynenc ≥ 0.4)
+
+pynenc 0.4 routes every invocation to a logical queue with a priority. The Rust
+brokers honour that end to end:
+
+```python
+app = (
+    PynencBuilder()
+    .app_id("calculation")
+    .rustvello_mongo3(host="mongo", username="u", password="p", auth_source="admin", db="pynenc")
+    .rustvello_rabbitmq_broker(host="rabbitmq-service")     # same keywords as pynenc-mongo / pynenc-rabbitmq
+    .custom_config(queues=("default", "hpa", "hyper"))   # declared on the broker
+    .build()
+)
+
+@app.task(queue="hyper", priority=5.0)
+def fast_path() -> None: ...
+```
+
+A worker picks its queues through pynenc's runner config, for example
+``PYNENC__CONFIGRUNNER__QUEUES=hpa,hyper``. Invocations are routed on
+rustvello's Python lane with their task identity, so a runner only ever
+retrieves work of its own language and queue; priorities are kept per queue
+(RabbitMQ maps them onto message priorities).
+
+Requires a rustvello build that exposes the queue-aware broker bindings
+(``route_invocation_to_queue``, ``retrieve_invocation_from_queue``,
+``count_invocations_in_queues``), i.e. newer than the 0.5.0 wheel on PyPI.
+
+### Current limitations
+
+- Trigger monitoring evidence (event records, trigger runs, retention) and
+  atomic-service execution records are kept in-process (pynenc's in-memory
+  implementations) because rustvello exposes no bindings for them yet;
+  conditions, claims and heartbeats stay in Rust. Finalized atomic-service
+  windows are mirrored into rustvello's timeline for its dashboard.
+- ``route_call`` is not composited in native mode: pynenc persists the new
+  invocation before routing, which rustvello's durable-submission rule treats
+  as a legacy id. Status, result, exception, retry and reroute stay single
+  FFI calls; retry and reroute register the task's routing in the Rust catalog
+  first so they re-queue on the right queue.
+- ``parent_event_id`` lookups use an in-process index (rustvello's invocation
+  row has no such field yet).
+
 ## Architecture
 
 `pynenc-rustvello` is a **storage plugin** — it replaces pynenc's storage
