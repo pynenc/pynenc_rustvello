@@ -1,0 +1,22 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "schedule:monthly"],
+  "minimumReleaseAge": "15 days",
+  "internalChecksFilter": "strict",
+  "prConcurrentLimit": 10,
+  "enabledManagers": ["pep621", "github-actions"],
+  "packageRules": [
+    {
+      "matchManagers": ["pep621"],
+      "groupName": "python-dependencies",
+      "commitMessagePrefix": "chore(deps):",
+      "labels": ["dependencies", "chore"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "commitMessagePrefix": "ci:",
+      "labels": ["ci", "skip-changelog"]
+    }
+  ]
+}
